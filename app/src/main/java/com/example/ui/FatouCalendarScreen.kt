@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +25,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -96,6 +99,15 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
             onStart = { isSpeaking = true },
             onDone = { isSpeaking = false }
         )
+    }
+
+    fun navigateToWeek(newWeek: Int) {
+        val clampedWeek = newWeek.coerceIn(1, 40)
+        selectedWeekNumber = clampedWeek
+        if (autoPlayAudio) {
+            val weekData = PregnancyRepository.weeks.firstOrNull { it.week == clampedWeek } ?: PregnancyRepository.weeks[0]
+            playWeekNarration(weekData)
+        }
     }
 
     val scrollState = rememberScrollState()
@@ -263,10 +275,7 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
 
                             Card(
                                 onClick = {
-                                    selectedWeekNumber = week.week
-                                    if (autoPlayAudio) {
-                                        playWeekNarration(week)
-                                    }
+                                    navigateToWeek(week.week)
                                 },
                                 colors = CardDefaults.cardColors(containerColor = cardBg),
                                 border = BorderStroke(if (isActive) 2.5.dp else 1.dp, borderColor),
@@ -331,6 +340,148 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                         .padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
+                    // Manual Guide Navigation Bar with Back and Forward Arrow Buttons
+                    Surface(
+                        color = Color(0xFF92400E).copy(alpha = 0.08f),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Color(0xFFBFA278)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Back Arrow Button
+                            FilledTonalIconButton(
+                                onClick = { navigateToWeek(selectedWeekNumber - 1) },
+                                enabled = selectedWeekNumber > 1,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .testTag("nav_prev_week_button"),
+                                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                    containerColor = Color(0xFF92400E).copy(alpha = 0.2f),
+                                    contentColor = Color(0xFF4A2C10),
+                                    disabledContainerColor = Color(0xFF92400E).copy(alpha = 0.05f),
+                                    disabledContentColor = Color(0xFF78350F).copy(alpha = 0.3f)
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Semaine précédente",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+
+                            // Center label & status
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.weight(1f).padding(horizontal = 6.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Text(
+                                        text = "Guide S$selectedWeekNumber / 40",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color(0xFF2E1905)
+                                    )
+                                    if (selectedWeekNumber == uiState.currentWeek) {
+                                        Surface(
+                                            color = Color(0xFF16A34A).copy(alpha = 0.15f),
+                                            shape = RoundedCornerShape(4.dp),
+                                            border = BorderStroke(0.5.dp, Color(0xFF16A34A))
+                                        ) {
+                                            Text(
+                                                text = "Actuelle",
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF15803D),
+                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                            )
+                                        }
+                                    } else {
+                                        Surface(
+                                            color = Color(0xFFB45309).copy(alpha = 0.12f),
+                                            shape = RoundedCornerShape(4.dp),
+                                            border = BorderStroke(0.5.dp, Color(0xFFB45309))
+                                        ) {
+                                            Text(
+                                                text = "Consultation libre",
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF92400E),
+                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                Text(
+                                    text = "Feuilletez librement les 40 semaines",
+                                    fontSize = 10.sp,
+                                    color = Color(0xFF78350F)
+                                )
+                            }
+
+                            // Forward Arrow Button
+                            FilledTonalIconButton(
+                                onClick = { navigateToWeek(selectedWeekNumber + 1) },
+                                enabled = selectedWeekNumber < 40,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .testTag("nav_next_week_button"),
+                                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                    containerColor = Color(0xFF92400E).copy(alpha = 0.2f),
+                                    contentColor = Color(0xFF4A2C10),
+                                    disabledContainerColor = Color(0xFF92400E).copy(alpha = 0.05f),
+                                    disabledContentColor = Color(0xFF78350F).copy(alpha = 0.3f)
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = "Semaine suivante",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    if (selectedWeekNumber != uiState.currentWeek) {
+                        Surface(
+                            onClick = { navigateToWeek(uiState.currentWeek) },
+                            color = Color(0xFFFEF3C7),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, Color(0xFFF59E0B)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("jump_to_current_week_top_button")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DateRange,
+                                    contentDescription = null,
+                                    tint = Color(0xFF92400E),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Revenir à votre semaine actuelle (Semaine ${uiState.currentWeek})",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF92400E)
+                                )
+                            }
+                        }
+                    }
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -357,12 +508,49 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                                     )
                                 }
                             }
-                            Text(
-                                text = "SEMAINE ${currentWeek.week}",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Black,
-                                color = Color(0xFF2E1905)
-                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                IconButton(
+                                    onClick = { navigateToWeek(selectedWeekNumber - 1) },
+                                    enabled = selectedWeekNumber > 1,
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .testTag("title_prev_arrow_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = "Semaine précédente",
+                                        tint = if (selectedWeekNumber > 1) Color(0xFF92400E) else Color(0xFF92400E).copy(alpha = 0.3f),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+
+                                Text(
+                                    text = "SEMAINE ${currentWeek.week}",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF2E1905)
+                                )
+
+                                IconButton(
+                                    onClick = { navigateToWeek(selectedWeekNumber + 1) },
+                                    enabled = selectedWeekNumber < 40,
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .testTag("title_next_arrow_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                        contentDescription = "Semaine suivante",
+                                        tint = if (selectedWeekNumber < 40) Color(0xFF92400E) else Color(0xFF92400E).copy(alpha = 0.3f),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+
                             Text(
                                 text = "${currentWeek.dates} • Room Tracking",
                                 fontSize = 11.sp,
@@ -511,27 +699,108 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                         speakSection("Conseils de bien-être", currentWeek.advice)
                     }
 
-                    Row(
+                    // Bottom Navigation Bar with Back & Forward Arrow Buttons
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Button(
-                            onClick = { if (selectedWeekNumber > 1) selectedWeekNumber-- },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706).copy(alpha = 0.2f)),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("← S-1", color = Color(0xFF4A2C10), fontWeight = FontWeight.Bold)
+                            Button(
+                                onClick = { navigateToWeek(selectedWeekNumber - 1) },
+                                enabled = selectedWeekNumber > 1,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF92400E),
+                                    disabledContainerColor = Color(0xFF92400E).copy(alpha = 0.2f),
+                                    contentColor = Color.White,
+                                    disabledContentColor = Color(0xFF78350F).copy(alpha = 0.4f)
+                                ),
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                                modifier = Modifier
+                                    .defaultMinSize(minHeight = 48.dp)
+                                    .testTag("bottom_prev_week_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (selectedWeekNumber > 1) "S${selectedWeekNumber - 1}" else "Début",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "Semaine $selectedWeekNumber / 40",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF2E1905)
+                                )
+                                Text(
+                                    text = currentWeek.fruit,
+                                    fontSize = 11.sp,
+                                    fontStyle = FontStyle.Italic,
+                                    color = Color(0xFF78350F)
+                                )
+                            }
+
+                            Button(
+                                onClick = { navigateToWeek(selectedWeekNumber + 1) },
+                                enabled = selectedWeekNumber < 40,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF92400E),
+                                    disabledContainerColor = Color(0xFF92400E).copy(alpha = 0.2f),
+                                    contentColor = Color.White,
+                                    disabledContentColor = Color(0xFF78350F).copy(alpha = 0.4f)
+                                ),
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                                modifier = Modifier
+                                    .defaultMinSize(minHeight = 48.dp)
+                                    .testTag("bottom_next_week_button")
+                            ) {
+                                Text(
+                                    text = if (selectedWeekNumber < 40) "S${selectedWeekNumber + 1}" else "Terme",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
 
-                        Text("S$selectedWeekNumber / 40", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
-
-                        Button(
-                            onClick = { if (selectedWeekNumber < 40) selectedWeekNumber++ },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706).copy(alpha = 0.2f)),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
-                        ) {
-                            Text("S+1 →", color = Color(0xFF4A2C10), fontWeight = FontWeight.Bold)
+                        if (selectedWeekNumber != uiState.currentWeek) {
+                            OutlinedButton(
+                                onClick = { navigateToWeek(uiState.currentWeek) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .defaultMinSize(minHeight = 48.dp)
+                                    .testTag("return_to_current_week_bottom_button"),
+                                border = BorderStroke(1.dp, Color(0xFF92400E)),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF92400E))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DateRange,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Revenir à ma semaine actuelle (Semaine ${uiState.currentWeek})",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
@@ -559,7 +828,7 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
 
                 Slider(
                     value = selectedWeekNumber.toFloat(),
-                    onValueChange = { selectedWeekNumber = it.toInt() },
+                    onValueChange = { navigateToWeek(it.toInt()) },
                     valueRange = 1f..40f,
                     colors = SliderDefaults.colors(
                         thumbColor = Color(0xFFD97706),
