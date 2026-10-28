@@ -1,0 +1,6 @@
+{
+  "name": "Fatou Pregnancy Calendar",
+  "description": "Pregnancy Calendar for Fatou with Day 5 euploid boy FET tracking, interactive weekly guides, and Doppler simulation",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
