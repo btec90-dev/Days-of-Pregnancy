@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.data.MilestoneLocalDataSource
 import com.example.data.PregnancyRepository
 import com.example.data.PregnancyWeek
 import com.example.ui.components.AudioHelper
@@ -448,6 +449,26 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                         BiometricCard("Longueur", currentWeek.metrics.split("·").firstOrNull() ?: currentWeek.metrics, Modifier.weight(1f))
                         BiometricCard("Poids Estimé", currentWeek.metrics.split("·").lastOrNull() ?: "14 g", Modifier.weight(1f))
                         BiometricCard("Fruit", currentWeek.fruit, Modifier.weight(1f))
+                    }
+
+                    val milestone = remember(currentWeek.week) {
+                        MilestoneLocalDataSource.getMilestone(currentWeek.week)
+                    }
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFAF5ED)),
+                        border = BorderStroke(1.dp, Color(0xFFD97706).copy(alpha = 0.3f))
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("🌱 Jalons, Symptômes & Nutrition (Semaine ${currentWeek.week})", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
+                            Text("• Symptômes fréquents : ${milestone.commonSymptoms.joinToString(", ")}", fontSize = 11.sp, color = Color(0xFF3B2814))
+                            Text("• Conseil nutritionnel : ${milestone.nutritionTip}", fontSize = 11.sp, color = Color(0xFF3B2814))
+                            Text("• Suivi clinique : ${milestone.clinicalCheckup}", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = Color(0xFF16A34A))
+                        }
                     }
 
                     ClinicalSectionCard("👶 Développement in utero", currentWeek.inUtero) {
