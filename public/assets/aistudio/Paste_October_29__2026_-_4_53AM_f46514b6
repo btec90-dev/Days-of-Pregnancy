@@ -1,0 +1,2574 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendrier de Grossesse & Suivi Fœtal 3D — Fatou</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Three.js & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif'],
+            title: ['"Cinzel"', 'serif'],
+          },
+          colors: {
+            wood: {
+              50: '#FDFBF7',
+              100: '#F6EEDB',
+              200: '#EBD8B8',
+              300: '#DFC295',
+              400: '#CCA371',
+              500: '#B58752',
+              600: '#946B3C',
+              700: '#73512B',
+              800: '#523A20',
+              900: '#342413',
+            },
+            sage: {
+              50: '#F2F7F4',
+              100: '#DFECE4',
+              200: '#C2D9CB',
+              300: '#9EBEAC',
+              400: '#7DA48E',
+              500: '#5F8771',
+              600: '#4A6C58',
+            },
+            peach: {
+              50: '#FFF7F2',
+              100: '#FFEBDC',
+              200: '#FFD3B5',
+              300: '#FBB98B',
+              400: '#F59A61',
+              500: '#E37837',
+            },
+            honey: {
+              50: '#FFFDF0',
+              100: '#FEF8C8',
+              200: '#FCEF90',
+              300: '#F8DF56',
+              400: '#EABF23',
+              500: '#C79A10',
+            },
+            brass: {
+              light: '#E6CA85',
+              DEFAULT: '#C5A059',
+              dark: '#9B7836',
+            }
+          },
+          boxShadow: {
+            'wood-emboss': 'inset 1px 1px 2px rgba(255,255,255,0.7), inset -1px -1px 3px rgba(0,0,0,0.15), 0 10px 25px -5px rgba(60, 40, 20, 0.15)',
+            'wooden-panel': 'inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.2), 0 14px 28px rgba(0,0,0,0.12), 0 10px 10px rgba(0,0,0,0.08)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .wood-grain {
+      background-color: #EEDCC4;
+      background-image: 
+        radial-gradient(ellipse at 50% 20%, rgba(255,255,255,0.35) 0%, rgba(0,0,0,0.05) 100%),
+        repeating-linear-gradient(90deg, rgba(160,110,60,0.03) 0px, rgba(160,110,60,0.03) 1px, transparent 1px, transparent 8px),
+        repeating-linear-gradient(0deg, rgba(120,70,30,0.02) 0px, rgba(120,70,30,0.02) 2px, transparent 2px, transparent 24px);
+    }
+    .window-card {
+      perspective: 1200px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .window-card:hover {
+      transform: translateY(-4px);
+    }
+    .brass-stud {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff1ba, #c5a059 60%, #7d5e23 100%);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(220, 190, 150, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CCA371;
+      border-radius: 4px;
+    }
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      14% { transform: scale(1.16); }
+      28% { transform: scale(1); }
+      42% { transform: scale(1.12); }
+      70% { transform: scale(1); }
+    }
+    .animate-heartbeat {
+      animation: heartbeat 1.1s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    .glass-morphism {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+  </style>
+</head>
+<body class="bg-[#F6EEDB] text-stone-800 antialiased min-h-full flex flex-col font-sans selection:bg-amber-200">
+
+  <!-- TOP HEADER / CLINICAL PROTOCOL BAR -->
+  <header class="wood-grain border-b-4 border-wood-400 shadow-md relative z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        
+        <!-- Mother & Baby Header Info -->
+        <div class="flex items-start gap-3.5">
+          <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-300 border-2 border-brass flex items-center justify-center shadow-md flex-shrink-0 relative overflow-hidden">
+            <span class="font-serif text-2xl font-bold text-wood-800">F</span>
+            <div class="absolute -bottom-1 -right-1 text-brass-dark opacity-60">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 class="text-xl sm:text-2xl font-serif font-bold text-wood-900 tracking-tight" id="header-patient-title">
+                Fatou’s Pregnancy Journey
+              </h1>
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                <i data-lucide="check-check" class="w-3 h-3"></i> RMA NY • FET
+              </span>
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                👦 Garçon (Male Euploid)
+              </span>
+            </div>
+            <p class="text-xs text-wood-700 flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+              <span><i data-lucide="user-check" class="w-3.5 h-3.5 inline text-wood-600 mr-1"></i>Dr. Anate Brauer (RMA of New York)</span>
+              <span>•</span>
+              <span><i data-lucide="calendar" class="w-3.5 h-3.5 inline text-amber-700 mr-1"></i>Transfert FET : <strong id="header-fet-date">03 Nov. 2026</strong></span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Calculated Live Badges -->
+        <div class="flex flex-wrap items-center gap-2 bg-white/75 backdrop-blur-md p-2 rounded-2xl border border-wood-300 shadow-sm">
+          <div class="px-3 py-1 rounded-xl bg-wood-50 border border-wood-200">
+            <div class="text-[10px] uppercase font-bold tracking-wider text-wood-600" id="label-ga">Âge Gestationnel</div>
+            <div class="text-sm sm:text-base font-bold text-wood-900" id="current-ga-badge">Semaine 2 + 5j</div>
+          </div>
+
+          <div class="px-3 py-1 rounded-xl bg-amber-50 border border-amber-200">
+            <div class="text-[10px] uppercase font-bold tracking-wider text-amber-700" id="label-edd">Terme Prévu (DPA)</div>
+            <div class="text-sm sm:text-base font-bold text-amber-950" id="current-edd-badge">27 Juil. 2027</div>
+          </div>
+
+          <div class="px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200">
+            <div class="text-[10px] uppercase font-bold tracking-wider text-emerald-700" id="label-countdown">Décompte</div>
+            <div class="text-sm sm:text-base font-bold text-emerald-950" id="current-countdown-badge">~261 Jours</div>
+          </div>
+
+          <button id="btn-open-settings" class="px-3 py-2 rounded-xl bg-wood-600 hover:bg-wood-700 text-white font-medium text-xs flex items-center gap-1.5 transition shadow-sm" title="Paramètres">
+            <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Paramètres</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Trimester & Heartbeat Mini-bar -->
+      <div class="mt-3 pt-2.5 border-t border-wood-300/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+        <div class="flex items-center gap-3 w-full sm:w-2/3">
+          <span class="font-semibold text-wood-800 whitespace-nowrap text-xs" id="trimester-indicator">1er Trimestre • Phase Embryonnaire</span>
+          <div class="w-full bg-wood-200/90 h-2.5 rounded-full overflow-hidden p-0.5 border border-wood-300 shadow-inner">
+            <div id="progress-bar-fill" class="h-full rounded-full bg-gradient-to-r from-sage-400 via-peach-400 to-honey-400 transition-all duration-700" style="width: 7%;"></div>
+          </div>
+          <span class="text-wood-700 font-bold text-xs" id="progress-percent-label">7%</span>
+        </div>
+
+        <div class="flex items-center gap-2 self-end sm:self-auto">
+          <button id="btn-toggle-heartbeat" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition font-medium text-xs">
+            <i data-lucide="activity" class="w-3.5 h-3.5 animate-heartbeat text-rose-600"></i>
+            <span id="heartbeat-text">Cœur Fœtal (145 BPM)</span>
+          </button>
+          
+          <button id="btn-toggle-lang" class="px-2.5 py-1 rounded-full bg-wood-100 border border-wood-300 text-wood-800 hover:bg-wood-200 transition font-bold text-xs">
+            FR / EN
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="bg-[#DFCEB3] border-b border-wood-300 sticky top-0 z-30 shadow-sm backdrop-blur-md bg-opacity-95">
+    <div class="max-w-7xl mx-auto px-4 flex items-center justify-between overflow-x-auto no-scrollbar py-1.5">
+      <div class="flex items-center space-x-1.5 sm:space-x-3">
+        <button class="nav-tab active px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-1.5 bg-wood-800 text-amber-50 shadow-inner" data-target="tab-windows">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span id="nav-board">Tableau 40 Semaines</span>
+        </button>
+        <button class="nav-tab px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-1.5 text-wood-800 hover:bg-wood-200 transition" data-target="tab-3d">
+          <i data-lucide="box" class="w-4 h-4"></i>
+          <span id="nav-3d">Fœtus 3D Utérin</span>
+        </button>
+        <button class="nav-tab px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-1.5 text-wood-800 hover:bg-wood-200 transition" data-target="tab-rma">
+          <i data-lucide="stethoscope" class="w-4 h-4 text-emerald-800"></i>
+          <span id="nav-rma">Protocole RMA & OB</span>
+        </button>
+        <button class="nav-tab px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-1.5 text-wood-800 hover:bg-wood-200 transition" data-target="tab-journal">
+          <i data-lucide="book-heart" class="w-4 h-4 text-rose-700"></i>
+          <span id="nav-journal">Journal & Mouvements</span>
+        </button>
+        <button class="nav-tab px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-1.5 text-wood-800 hover:bg-wood-200 transition" data-target="tab-meds">
+          <i data-lucide="pill" class="w-4 h-4 text-purple-700"></i>
+          <span id="nav-meds">Traitements FIV & Poids</span>
+        </button>
+        <button class="nav-tab px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-1.5 text-wood-800 hover:bg-wood-200 transition" data-target="tab-tools">
+          <i data-lucide="briefcase-medical" class="w-4 h-4 text-amber-800"></i>
+          <span id="nav-tools">Valise & Plan de Naissance</span>
+        </button>
+        <button class="nav-tab px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-1.5 text-wood-800 hover:bg-wood-200 transition" data-target="tab-guide">
+          <i data-lucide="compass" class="w-4 h-4 text-amber-900"></i>
+          <span id="nav-guide">Guide & Conseils</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN VIEWPORT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+    
+    <!-- ==================== TAB 1: THE WOODEN WINDOW BOARD ==================== -->
+    <section id="tab-windows" class="tab-pane active space-y-5">
+      <div class="wood-grain p-5 rounded-3xl border-4 border-wood-300 shadow-wooden-panel relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="absolute top-2.5 left-2.5 brass-stud"></div>
+        <div class="absolute top-2.5 right-2.5 brass-stud"></div>
+        <div class="absolute bottom-2.5 left-2.5 brass-stud"></div>
+        <div class="absolute bottom-2.5 right-2.5 brass-stud"></div>
+
+        <div>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-wood-900 tracking-tight flex items-center gap-2">
+            <span>Le Calendrier Mural des 40 Semaines</span>
+            <span class="text-xs px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-sans">Interactif</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-wood-700 mt-1 max-w-2xl" id="board-instruction">
+            Cliquez sur un volet en bois pour l'ouvrir : découvrez la taille du bébé comparée à un fruit, la vidéo médicale 3D avec minutage précis, les dates exactes du protocole RMA et vos check-lists.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 bg-white/80 p-2 rounded-2xl border border-wood-300">
+          <label class="text-xs font-semibold text-wood-800">Semaine :</label>
+          <select id="select-week-jump" class="text-xs font-medium bg-wood-50 border border-wood-300 rounded-lg px-2.5 py-1.5 text-wood-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
+          </select>
+          <button id="btn-jump-current" class="px-2.5 py-1.5 bg-wood-700 hover:bg-wood-800 text-white rounded-lg text-xs font-semibold shadow transition">
+            Aujourd'hui
+          </button>
+        </div>
+      </div>
+
+      <!-- Wooden Board 40-grid -->
+      <div class="wood-grain p-4 sm:p-7 rounded-[2.5rem] border-8 border-wood-400 shadow-2xl relative">
+        <div class="absolute inset-2 border border-wood-300/70 rounded-[2.2rem] pointer-events-none"></div>
+        <div id="windows-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 gap-3 sm:gap-4 relative z-10">
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: PROCEDURAL 3D BABY IN WOMB ==================== -->
+    <section id="tab-3d" class="tab-pane hidden space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- 3D Canvas Box -->
+        <div class="lg:col-span-8 bg-gradient-to-b from-stone-900 via-stone-950 to-amber-950 rounded-3xl p-4 shadow-2xl border-4 border-wood-400 relative overflow-hidden flex flex-col">
+          
+          <div class="absolute top-6 left-6 z-10 glass-morphism px-4 py-2.5 rounded-2xl border border-white/20 text-stone-900 shadow-lg max-w-xs">
+            <div class="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Modélisation Fœtale 3D</div>
+            <div class="text-lg font-serif font-bold text-stone-900" id="three-week-title">Semaine 12 • Fœtus Formé</div>
+            <div class="text-xs text-stone-600" id="three-week-sub">Poche amniotique, cordon & posture naturelle</div>
+          </div>
+
+          <div class="absolute top-6 right-6 z-10 flex gap-2">
+            <button id="btn-reset-cam" class="glass-morphism p-2 rounded-xl text-stone-800 hover:bg-white text-xs flex items-center gap-1 shadow" title="Réinitialiser vue">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+            <button id="btn-toggle-womb-transparency" class="glass-morphism px-3 py-2 rounded-xl text-stone-800 hover:bg-white text-xs font-semibold flex items-center gap-1 shadow">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+              <span id="label-womb-transp">Utérus Semi-Transparent</span>
+            </button>
+          </div>
+
+          <div class="w-full h-[520px] rounded-2xl overflow-hidden relative cursor-grab active:cursor-grabbing" id="womb-canvas-container">
+          </div>
+
+          <div class="mt-4 bg-stone-800/80 backdrop-blur-md rounded-2xl p-4 border border-stone-700/80 text-white flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs font-medium">
+              <span class="text-amber-300 font-bold flex items-center gap-1.5">
+                <i data-lucide="play" class="w-3.5 h-3.5 fill-amber-300"></i>
+                Glissière de Développement (Semaines 1 à 40)
+              </span>
+              <span id="slider-week-display" class="bg-amber-500/20 px-3 py-0.5 rounded-full text-amber-300 font-bold">Semaine 12</span>
+            </div>
+            <input type="range" id="three-week-slider" min="1" max="40" value="12" class="w-full h-2 bg-stone-700 rounded-lg appearance-none cursor-pointer accent-amber-400">
+            <div class="flex justify-between text-[10px] text-stone-400 px-1">
+              <span>Sem. 1 (Blastocyste)</span>
+              <span>Sem. 12 (Organogenèse)</span>
+              <span>Sem. 24 (Viabilité)</span>
+              <span>Sem. 40 (Naissance)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3D Sidebar Info -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="wood-grain p-5 rounded-3xl border-2 border-wood-300 shadow-md space-y-4">
+            <div class="flex items-center justify-between border-b border-wood-200 pb-2.5">
+              <span class="text-xs uppercase font-bold tracking-wider text-wood-600">Détails Anatomiques</span>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800" id="detail-card-trimester">1er Trimestre</span>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-serif font-bold text-wood-900" id="detail-card-title">Semaine 12 : Les Réflexes Débutent</h3>
+              <p class="text-xs text-wood-700 mt-1" id="detail-card-fruit">Taille comparable : <strong>Prune (Plum)</strong> ~ 5.4 cm • 14 g</p>
+            </div>
+
+            <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-rose-200 flex items-center justify-center text-rose-700 flex-shrink-0 animate-heartbeat">
+                <i data-lucide="heart" class="w-5 h-5 fill-rose-500"></i>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase font-bold text-rose-700">Rythme Cardiaque Fœtal</div>
+                <div class="text-sm font-bold text-rose-950" id="detail-card-fhr">~150 - 165 BPM</div>
+                <div class="text-[11px] text-rose-600">Double du rythme maternel</div>
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <h4 class="text-xs font-bold text-wood-800 uppercase tracking-wide">Développements Clés :</h4>
+              <ul class="text-xs text-wood-700 space-y-1 list-disc pl-4" id="detail-card-highlights">
+                <li>Tous les organes vitaux et membres sont désormais formés.</li>
+                <li>Le visage fœtal commence à prendre des expressions et les ongles se dessinent.</li>
+                <li>Période idéale pour le DPNI et la clarté nucale.</li>
+              </ul>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3">
+              <div class="text-[10px] uppercase font-bold text-amber-800">Chez la Maman (Fatou) :</div>
+              <p class="text-xs text-amber-950 mt-1" id="detail-card-mom-notes">
+                L'utérus remonte au-dessus de la symphyse pubienne, soulageant la pression vésicale.
+              </p>
+            </div>
+
+            <button id="btn-sync-to-board" class="w-full py-2.5 bg-wood-800 hover:bg-wood-900 text-amber-50 rounded-xl font-medium text-xs shadow transition flex items-center justify-center gap-2">
+              <i data-lucide="folder-open" class="w-4 h-4"></i>
+              <span>Ouvrir le Volet Mural Semaine <span id="sync-week-num">12</span></span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: RMA PROTOCOL & OB TIMELINE ==================== -->
+    <section id="tab-rma" class="tab-pane hidden space-y-6">
+      <div class="wood-grain p-6 rounded-3xl border-4 border-wood-300 shadow-wooden-panel relative">
+        <div class="max-w-3xl">
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+            Protocole RMA of New York • Dr. Anate Brauer
+          </span>
+          <h2 class="font-serif text-2xl sm:text-3xl font-bold text-wood-900 mt-2">
+            Feuille de Route Médicale : FET & Suivi Obstétrical
+          </h2>
+          <p class="text-xs sm:text-sm text-wood-700 mt-2">
+            Chronologie médicale calculée pour votre transfert d'embryon congelé (FET) de début novembre 2026.
+          </p>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-wood-200">
+          <div class="bg-white/70 p-3 rounded-2xl border border-wood-200">
+            <span class="text-[10px] uppercase font-bold text-wood-500">Patiente & Dossier</span>
+            <div class="text-sm font-bold text-wood-900">Fatou • FET J5 Euploïde</div>
+            <div class="text-xs text-wood-600">Sélection confirmée : Garçon 👦</div>
+          </div>
+          <div class="bg-white/70 p-3 rounded-2xl border border-wood-200">
+            <span class="text-[10px] uppercase font-bold text-wood-500">Clinique Initiale</span>
+            <div class="text-sm font-bold text-wood-900">RMA of New York</div>
+            <div class="text-xs text-wood-600">East Side • Manhattan, NY</div>
+          </div>
+          <div class="bg-white/70 p-3 rounded-2xl border border-wood-200">
+            <span class="text-[10px] uppercase font-bold text-wood-500">Statut Suivi</span>
+            <div class="text-sm font-bold text-emerald-700 flex items-center gap-1">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Phase 3 En Cours
+            </div>
+            <div class="text-xs text-wood-600">Surveillance Bêta-hCG & Échographies</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Phase 3 -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-6 border-2 border-emerald-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-emerald-100 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">P3</span>
+              <div>
+                <h3 class="font-serif font-bold text-lg text-emerald-950">Phase 3 : RMA of New York</h3>
+                <p class="text-xs text-emerald-700">Surveillance Initiale & Graduation</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Semaines 2 à 10</span>
+          </div>
+          <div class="space-y-3 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-emerald-200" id="phase3-items-container">
+          </div>
+        </div>
+
+        <!-- Phase 4 -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-6 border-2 border-amber-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-amber-100 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-amber-600 text-white flex items-center justify-center font-bold text-xs">P4</span>
+              <div>
+                <h3 class="font-serif font-bold text-lg text-amber-950">Phase 4 : Cabinet d'Obstétrique</h3>
+                <p class="text-xs text-amber-700">Grossesse à Terme & Naissance</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Semaines 11 à 41</span>
+          </div>
+          <div class="space-y-3 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-amber-200" id="phase4-items-container">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: JOURNAL & KICK LOGGER ==================== -->
+    <section id="tab-journal" class="tab-pane hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Form -->
+        <div class="lg:col-span-5 space-y-5">
+          <div class="wood-grain p-5 rounded-3xl border-2 border-wood-300 shadow-md">
+            <h3 class="font-serif font-bold text-lg text-wood-900 mb-3 flex items-center gap-2">
+              <i data-lucide="feather" class="w-4 h-4 text-wood-700"></i>
+              <span>Enregistrer un Journal ou Symptôme</span>
+            </h3>
+
+            <form id="journal-form" class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-wood-800 mb-1">Date & Semaine</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <input type="date" id="journal-date" class="w-full text-xs bg-white border border-wood-300 rounded-xl p-2.5 text-wood-900 focus:ring-2 focus:ring-amber-500">
+                  <input type="text" id="journal-week" readonly class="w-full text-xs bg-wood-100 border border-wood-300 rounded-xl p-2.5 text-wood-800 font-semibold">
+                </div>
+              </div>
+
+              <!-- Mood -->
+              <div>
+                <label class="block text-xs font-bold text-wood-800 mb-1">Humeur & Énergie</label>
+                <div class="grid grid-cols-5 gap-1.5" id="mood-selector">
+                  <button type="button" data-mood="sereine" class="mood-btn ring-2 ring-amber-500 bg-amber-100 p-2 rounded-xl border border-wood-300 hover:bg-amber-50 text-center transition">
+                    <span class="text-xl">🌸</span>
+                    <span class="block text-[10px] text-wood-700 font-semibold">Sereine</span>
+                  </button>
+                  <button type="button" data-mood="radieuse" class="mood-btn p-2 rounded-xl border border-wood-300 bg-white hover:bg-amber-50 text-center transition">
+                    <span class="text-xl">✨</span>
+                    <span class="block text-[10px] text-wood-700">Épanouie</span>
+                  </button>
+                  <button type="button" data-mood="fatiguee" class="mood-btn p-2 rounded-xl border border-wood-300 bg-white hover:bg-amber-50 text-center transition">
+                    <span class="text-xl">😴</span>
+                    <span class="block text-[10px] text-wood-700">Fatiguée</span>
+                  </button>
+                  <button type="button" data-mood="nausee" class="mood-btn p-2 rounded-xl border border-wood-300 bg-white hover:bg-amber-50 text-center transition">
+                    <span class="text-xl">🤢</span>
+                    <span class="block text-[10px] text-wood-700">Nausée</span>
+                  </button>
+                  <button type="button" data-mood="émotive" class="mood-btn p-2 rounded-xl border border-wood-300 bg-white hover:bg-amber-50 text-center transition">
+                    <span class="text-xl">🥹</span>
+                    <span class="block text-[10px] text-wood-700">Émue</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Water Tracker -->
+              <div class="p-3 bg-white/80 rounded-2xl border border-wood-300 space-y-2">
+                <div class="flex items-center justify-between text-xs font-bold text-wood-900">
+                  <span class="flex items-center gap-1.5 text-sky-800">
+                    <i data-lucide="droplets" class="w-3.5 h-3.5 text-sky-500"></i>
+                    <span>Hydratation Quotidienne (Objectif 2L)</span>
+                  </span>
+                  <span id="water-glasses-count" class="text-sky-700">4 / 8 verres (1.0 L)</span>
+                </div>
+                <div class="flex items-center justify-between gap-1" id="water-glasses-row"></div>
+              </div>
+
+              <!-- Dedicated Kick Session Box (Interactive 10-Kicks Stopwatch) -->
+              <div class="p-3 bg-amber-50/70 rounded-2xl border border-amber-300 space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs font-bold text-amber-950 flex items-center gap-1">
+                    <i data-lucide="footprints" class="w-4 h-4 text-amber-700"></i>
+                    <span>Séance Comptage Mouvements (Kick Counter)</span>
+                  </div>
+                  <span id="kick-session-timer" class="text-xs font-mono font-bold text-amber-900">00:00</span>
+                </div>
+                <p class="text-[11px] text-wood-700">Comptez jusqu'à 10 mouvements fœtaux distincts en position assise ou semi-allongée.</p>
+                <div class="flex items-center justify-between gap-2 pt-1">
+                  <button type="button" id="btn-start-kick-session" class="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1">
+                    <i data-lucide="play" class="w-3 h-3"></i>
+                    <span>Démarrer Séance</span>
+                  </button>
+                  <div class="flex items-center gap-2">
+                    <button type="button" id="btn-kick-minus" class="w-7 h-7 rounded-lg bg-wood-200 text-wood-800 font-bold hover:bg-wood-300">-</button>
+                    <span id="kick-count-display" class="font-bold text-wood-900 w-8 text-center text-sm">0 / 10</span>
+                    <button type="button" id="btn-kick-plus" class="w-8 h-8 rounded-lg bg-amber-500 text-white font-bold hover:bg-amber-600 shadow">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Symptoms Checklist -->
+              <div>
+                <label class="block text-xs font-bold text-wood-800 mb-1.5">Symptômes ressentis</label>
+                <div class="grid grid-cols-2 gap-2 text-xs text-wood-800">
+                  <label class="flex items-center gap-2 p-2 bg-white/70 rounded-xl border border-wood-200 cursor-pointer hover:bg-amber-50/50">
+                    <input type="checkbox" name="symptom" value="Tiraillements utérins" class="rounded text-amber-600 focus:ring-0">
+                    <span>Tiraillements</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-white/70 rounded-xl border border-wood-200 cursor-pointer hover:bg-amber-50/50">
+                    <input type="checkbox" name="symptom" value="Sensibilité mammaire" class="rounded text-amber-600 focus:ring-0">
+                    <span>Poitrine sensible</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-white/70 rounded-xl border border-wood-200 cursor-pointer hover:bg-amber-50/50">
+                    <input type="checkbox" name="symptom" value="Envies / Dégoûts" class="rounded text-amber-600 focus:ring-0">
+                    <span>Envies / Dégoûts</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-white/70 rounded-xl border border-wood-200 cursor-pointer hover:bg-amber-50/50">
+                    <input type="checkbox" name="symptom" value="Premiers coups" class="rounded text-amber-600 focus:ring-0">
+                    <span>Mouvements fœtaux</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-white/70 rounded-xl border border-wood-200 cursor-pointer hover:bg-amber-50/50">
+                    <input type="checkbox" name="symptom" value="Légères nausées" class="rounded text-amber-600 focus:ring-0">
+                    <span>Nausées</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-white/70 rounded-xl border border-wood-200 cursor-pointer hover:bg-amber-50/50">
+                    <input type="checkbox" name="symptom" value="Somnolence" class="rounded text-amber-600 focus:ring-0">
+                    <span>Somnolence</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Notes & Prompts -->
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block text-xs font-bold text-wood-800">Pensées & Notes du Jour</label>
+                </div>
+                <div class="flex flex-wrap gap-1 mb-2">
+                  <button type="button" class="btn-journal-prompt text-[10px] px-2 py-0.5 rounded-full bg-amber-50 hover:bg-amber-100 text-wood-800 border border-wood-200 transition" data-prompt="Ce que j'ai ressenti en entendant son petit cœur aujourd'hui : ">❤️ Cœur de bébé</button>
+                  <button type="button" class="btn-journal-prompt text-[10px] px-2 py-0.5 rounded-full bg-amber-50 hover:bg-amber-100 text-wood-800 border border-wood-200 transition" data-prompt="Message d'amour à mon petit garçon pour son arrivée : ">💌 Pour mon fils</button>
+                  <button type="button" class="btn-journal-prompt text-[10px] px-2 py-0.5 rounded-full bg-amber-50 hover:bg-amber-100 text-wood-800 border border-wood-200 transition" data-prompt="Question pour le Dr. Brauer / Obstétricien : ">🩺 Question médicale</button>
+                </div>
+                <textarea id="journal-text" rows="3" placeholder="Écrivez un mot doux, un résultat d'analyse ou votre ressenti..." class="w-full text-xs bg-white border border-wood-300 rounded-xl p-2.5 text-wood-900 focus:ring-2 focus:ring-amber-500"></textarea>
+              </div>
+
+              <button type="submit" class="w-full py-2.5 bg-wood-800 hover:bg-wood-900 text-amber-50 rounded-xl font-semibold text-xs shadow transition flex items-center justify-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                <span>Enregistrer dans mon carnet</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Right: Journal Entries & Photo Gallery -->
+        <div class="lg:col-span-7 space-y-5">
+          <div class="bg-white/80 backdrop-blur-sm p-5 rounded-3xl border border-wood-300 shadow-sm">
+            <div class="flex items-center justify-between border-b border-wood-200 pb-3">
+              <div>
+                <h3 class="font-serif font-bold text-lg text-wood-900">Journal Intime & Historique</h3>
+                <p class="text-xs text-wood-600">Vos pensées et séances de mouvements sauvegardées</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="btn-export-json" class="px-3 py-1.5 rounded-xl bg-wood-100 hover:bg-wood-200 border border-wood-300 text-wood-800 text-xs font-semibold flex items-center gap-1 transition">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i> Sauvegarde
+                </button>
+                <button id="btn-print-summary" class="px-3 py-1.5 rounded-xl bg-wood-700 hover:bg-wood-800 text-white text-xs font-semibold flex items-center gap-1 transition shadow-sm">
+                  <i data-lucide="printer" class="w-3.5 h-3.5"></i> Imprimer
+                </button>
+              </div>
+            </div>
+
+            <div id="journal-entries-list" class="mt-4 space-y-3 max-h-[360px] overflow-y-auto pr-2">
+            </div>
+          </div>
+
+          <!-- Ultrasound & Belly Bump Photo Vault -->
+          <div class="bg-white/80 backdrop-blur-sm p-5 rounded-3xl border border-wood-300 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b border-wood-200 pb-2.5">
+              <div class="flex items-center gap-2">
+                <i data-lucide="camera" class="w-4 h-4 text-amber-700"></i>
+                <h4 class="font-serif font-bold text-base text-wood-900">Galerie Photos & Clichés d'Échographies</h4>
+              </div>
+              <label class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm flex items-center gap-1">
+                <i data-lucide="upload" class="w-3 h-3"></i>
+                <span>Ajouter un cliché</span>
+                <input type="file" id="input-upload-photo" accept="image/*" class="hidden">
+              </label>
+            </div>
+            <div id="photo-gallery-container" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="text-center py-6 text-stone-400 text-xs col-span-full">
+                Aucune photo ajoutée pour l'instant. Ajoutez vos clichés d'échographies ou vos photos de ventre rond !
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: IVF MEDICATION & WEIGHT TRACKER ==================== -->
+    <section id="tab-meds" class="tab-pane hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: IVF Medication Schedule & Progesterone Alarm Tracker -->
+        <div class="lg:col-span-6 space-y-4">
+          <div class="bg-white/85 backdrop-blur-sm p-6 rounded-3xl border border-wood-300 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-wood-200">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center">
+                  <i data-lucide="pill" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h3 class="font-serif font-bold text-lg text-wood-900">Protocole Médicamenteux FIV (Soutien Lutéal)</h3>
+                  <p class="text-xs text-wood-600">Suivi strict prescrit par RMA of New York pour le FET</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-900 border border-purple-200">Semaines 2–10</span>
+            </div>
+
+            <div class="space-y-3" id="medications-checklist-container">
+              <!-- Rendered via JS -->
+            </div>
+
+            <div class="p-3 bg-purple-50 rounded-2xl border border-purple-200 text-xs text-purple-950 flex items-start gap-2">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-purple-700 mt-0.5 flex-shrink-0"></i>
+              <div>
+                <strong>Recommandation Clinique RMA :</strong>
+                Ne jamais modifier ou arrêter la progestérone (injections intramusculaires ou ovules) sans l'accord direct et formel du Dr. Brauer lors de la graduation RMA (vers Semaine 8-10).
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Weight Gain & Belly Circumference Tracker -->
+        <div class="lg:col-span-6 space-y-4">
+          <div class="bg-white/85 backdrop-blur-sm p-6 rounded-3xl border border-wood-300 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-wood-200">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+                  <i data-lucide="scale" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h3 class="font-serif font-bold text-lg text-wood-900">Courbe de Poids & Tour de Ventre</h3>
+                  <p class="text-xs text-wood-600">Suivi de la prise pondérale recommandée (11 à 15 kg au total)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form -->
+            <form id="weight-form" class="grid grid-cols-3 gap-2.5">
+              <div>
+                <label class="block text-[10px] font-bold text-wood-700 uppercase mb-1">Semaine</label>
+                <input type="number" id="input-weight-week" min="1" max="42" value="12" class="w-full text-xs bg-white border border-wood-300 rounded-xl p-2">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-wood-700 uppercase mb-1">Poids (kg)</label>
+                <input type="number" step="0.1" id="input-weight-val" placeholder="Ex: 62.5" class="w-full text-xs bg-white border border-wood-300 rounded-xl p-2">
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="w-full py-2 bg-wood-800 hover:bg-wood-900 text-white rounded-xl text-xs font-semibold shadow transition">
+                  Enregistrer
+                </button>
+              </div>
+            </form>
+
+            <!-- Table of weight records -->
+            <div class="space-y-2">
+              <div class="text-xs font-bold text-wood-800">Historique des Pesées :</div>
+              <div id="weight-records-list" class="max-h-48 overflow-y-auto space-y-1.5 text-xs">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 6: CLINICAL TOOLKIT, BAG & BIRTH PLAN ==================== -->
+    <section id="tab-tools" class="tab-pane hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Contraction Timer -->
+        <div class="lg:col-span-5 space-y-5">
+          <div class="wood-grain p-5 rounded-3xl border-2 border-wood-300 shadow-md space-y-4">
+            <div class="flex items-center justify-between border-b border-wood-200 pb-2">
+              <div>
+                <h3 class="font-serif font-bold text-lg text-wood-900 flex items-center gap-2">
+                  <i data-lucide="timer" class="w-5 h-5 text-rose-600"></i>
+                  <span>Chronomètre de Contractions</span>
+                </h3>
+                <p class="text-[11px] text-wood-700">Mesurez la durée et l'espacement pour savoir quand partir.</p>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300">Règle 5-1-1</span>
+            </div>
+
+            <div class="text-center py-4 bg-white/70 rounded-2xl border border-wood-200 shadow-inner">
+              <div class="text-[11px] uppercase font-bold text-wood-600 tracking-wider">Durée de la contraction</div>
+              <div class="text-4xl font-mono font-bold text-wood-900 mt-1" id="timer-display">00:00</div>
+              <div class="text-xs text-wood-600 mt-1" id="timer-status-text">Prête pour démarrer</div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button id="btn-toggle-contraction" class="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                <i data-lucide="play" class="w-4 h-4" id="contraction-btn-icon"></i>
+                <span id="contraction-btn-text">Démarrer Contraction</span>
+              </button>
+              <button id="btn-reset-contractions" class="px-3.5 py-3 bg-wood-200 hover:bg-wood-300 text-wood-800 rounded-2xl text-xs font-semibold transition" title="Réinitialiser l'historique">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <div id="rule-511-alert" class="p-3 bg-amber-50 border border-amber-300 rounded-2xl text-xs text-amber-950 flex items-start gap-2">
+              <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0"></i>
+              <div>
+                <strong class="font-bold">Repère Médical (Règle 5-1-1) :</strong>
+                Contractions toutes les 5 minutes, durant 1 minute chacune, pendant au moins 1 heure = Appelez la maternité !
+              </div>
+            </div>
+
+            <div class="bg-white/80 rounded-2xl border border-wood-200 p-3 space-y-2">
+              <div class="text-xs font-bold text-wood-800 flex justify-between items-center">
+                <span>Dernières Contractions</span>
+                <span id="contractions-count" class="text-[11px] text-wood-600">0 enregistrée(s)</span>
+              </div>
+              <div class="max-h-36 overflow-y-auto space-y-1 text-xs" id="contractions-list">
+                <p class="text-stone-400 text-center py-3 text-[11px]">Aucune contraction enregistrée.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Hospital Bag & Custom Birth Plan -->
+        <div class="lg:col-span-7 space-y-5">
+          
+          <!-- Hospital Bag -->
+          <div class="bg-white/85 backdrop-blur-sm p-6 rounded-3xl border border-wood-300 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-wood-200 gap-2">
+              <div>
+                <h3 class="font-serif font-bold text-xl text-wood-900 flex items-center gap-2">
+                  <i data-lucide="shopping-bag" class="w-5 h-5 text-amber-700"></i>
+                  <span>Valise de Maternité Interactive</span>
+                </h3>
+                <p class="text-xs text-wood-600">Cochez vos préparatifs pour Fatou, Bébé Garçon et la salle de naissance.</p>
+              </div>
+
+              <div class="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
+                <div class="text-[11px] font-bold text-amber-900" id="bag-progress-text">0 / 12 prêts</div>
+                <div class="w-16 bg-amber-200 h-2 rounded-full overflow-hidden">
+                  <div id="bag-progress-bar" class="bg-amber-600 h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="hospital-bag-categories">
+              <div class="p-3 bg-amber-50/60 rounded-2xl border border-amber-200/80 space-y-1.5">
+                <div class="font-bold text-xs uppercase tracking-wider text-amber-900 pb-1 border-b border-amber-200">👶 Pour Bébé Garçon</div>
+                <div class="space-y-1 text-xs text-stone-800" id="bag-baby-items"></div>
+              </div>
+
+              <div class="p-3 bg-rose-50/60 rounded-2xl border border-rose-200/80 space-y-1.5">
+                <div class="font-bold text-xs uppercase tracking-wider text-rose-900 pb-1 border-b border-rose-200">🌸 Pour Fatou</div>
+                <div class="space-y-1 text-xs text-stone-800" id="bag-mom-items"></div>
+              </div>
+
+              <div class="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-200/80 space-y-1.5">
+                <div class="font-bold text-xs uppercase tracking-wider text-emerald-900 pb-1 border-b border-emerald-200">📁 Dossier & Salle</div>
+                <div class="space-y-1 text-xs text-stone-800" id="bag-docs-items"></div>
+              </div>
+            </div>
+
+            <div class="pt-1 flex items-center gap-2">
+              <input type="text" id="input-new-bag-item" placeholder="Ajouter un article personnalisé à la valise..." class="flex-1 text-xs bg-white border border-wood-300 rounded-xl p-2.5 text-wood-900 focus:ring-2 focus:ring-amber-500">
+              <button id="btn-add-bag-item" class="px-4 py-2.5 bg-wood-800 hover:bg-wood-900 text-white rounded-xl text-xs font-semibold shadow transition flex items-center gap-1">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Ajouter</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive Birth Plan Builder -->
+          <div class="bg-white/85 backdrop-blur-sm p-6 rounded-3xl border border-wood-300 shadow-sm space-y-3">
+            <div class="flex items-center justify-between pb-2.5 border-b border-wood-200">
+              <div class="flex items-center gap-2">
+                <i data-lucide="heart-handshake" class="w-5 h-5 text-rose-600"></i>
+                <h4 class="font-serif font-bold text-lg text-wood-900">Mon Projet de Naissance Interactif</h4>
+              </div>
+              <button id="btn-print-birth-plan" class="px-3 py-1 bg-wood-100 hover:bg-wood-200 text-wood-800 rounded-xl text-xs font-bold border border-wood-300 flex items-center gap-1">
+                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Imprimer pour la maternité
+              </button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" id="birth-plan-container">
+              <!-- Dynamically populated preferences -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 7: GUIDE, ADVICE & PLANNING ==================== -->
+    <section id="tab-guide" class="tab-pane hidden space-y-6">
+      <div class="wood-grain p-6 rounded-3xl border-4 border-wood-300 shadow-wooden-panel relative">
+        <div class="max-w-3xl">
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+            Guide Complet de la Future Maman • Fatou
+          </span>
+          <h2 class="font-serif text-2xl sm:text-3xl font-bold text-wood-900 mt-2">
+            Conseils d'Écriture, Précautions & Préparatifs avant l'Arrivée
+          </h2>
+          <p class="text-xs sm:text-sm text-wood-700 mt-2">
+            Des repères bienveillants et scientifiquement vérifiés pour vivre chaque étape avec confiance.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Col 1 -->
+        <div class="bg-white/85 backdrop-blur-sm p-6 rounded-3xl border-2 border-wood-300 shadow-sm space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-wood-200">
+            <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-lg shadow-sm">
+              <i data-lucide="feather" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="font-serif font-bold text-lg text-wood-900">Conseils Carnet & Journal</h3>
+              <p class="text-[11px] text-wood-600">Immortaliser ce voyage unique</p>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-xs text-wood-800 leading-relaxed">
+            <div class="p-3 bg-amber-50/70 rounded-2xl border border-amber-200/80">
+              <strong class="font-bold text-amber-950 block mb-1">1. Noter les chiffres & jalons cliniques</strong>
+              <p class="text-stone-600 text-[11px]">Consignez le dosage initial de Bêta-hCG, le premier battement cardiaque (BPM), l'épaisseur de l'endomètre au transfert (9.5 mm) et les mesures des échographies.</p>
+            </div>
+            <div class="p-3 bg-amber-50/70 rounded-2xl border border-amber-200/80">
+              <strong class="font-bold text-amber-950 block mb-1">2. Écrire des lettres à son fils</strong>
+              <p class="text-stone-600 text-[11px]">Adressez-lui de courts messages : vos sensations le jour du transfert euploïde, les musiques partagées et vos souhaits pour sa venue.</p>
+            </div>
+            <div class="p-3 bg-amber-50/70 rounded-2xl border border-amber-200/80">
+              <strong class="font-bold text-amber-950 block mb-1">3. La « Boîte à Questions »</strong>
+              <p class="text-stone-600 text-[11px]">Notez vos doutes dès qu'ils surgissent pour ne rien oublier lors des consultations avec le Dr. Brauer ou l'obstétricien.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 2 -->
+        <div class="bg-white/85 backdrop-blur-sm p-6 rounded-3xl border-2 border-rose-200 shadow-sm space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-rose-100">
+            <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-800 flex items-center justify-center font-bold text-lg shadow-sm">
+              <i data-lucide="shield-alert" class="w-5 h-5 text-rose-600"></i>
+            </div>
+            <div>
+              <h3 class="font-serif font-bold text-lg text-rose-950">Précautions & À Éviter</h3>
+              <p class="text-[11px] text-rose-600">Sécurité maximale pour la maman & bébé</p>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-xs text-stone-800 leading-relaxed">
+            <div class="p-3 bg-rose-50/50 rounded-2xl border border-rose-200/70">
+              <strong class="font-bold text-rose-900 block mb-1">🚫 Alimentation à risque</strong>
+              <ul class="list-disc pl-4 space-y-1 text-stone-600 text-[11px]">
+                <li>Viandes crues, charcuteries non cuites, carpaccio (toxoplasmose).</li>
+                <li>Fromages au lait cru non pasteurisés (listériose).</li>
+                <li>Poissons prédateurs riches en mercure et sushis crus.</li>
+              </ul>
+            </div>
+            <div class="p-3 bg-rose-50/50 rounded-2xl border border-rose-200/70">
+              <strong class="font-bold text-rose-900 block mb-1">🚫 Cosmétiques & Soins de peau</strong>
+              <ul class="list-disc pl-4 space-y-1 text-stone-600 text-[11px]">
+                <li>Rétinoïdes, rétinol et dérivés de vitamine A.</li>
+                <li>Acide salicylique concentré et hydroquinone.</li>
+              </ul>
+            </div>
+            <div class="p-3 bg-rose-50/50 rounded-2xl border border-rose-200/70">
+              <strong class="font-bold text-rose-900 block mb-1">🚫 Médicaments contre-indiqués</strong>
+              <ul class="list-disc pl-4 space-y-1 text-stone-600 text-[11px]">
+                <li><strong>AINS :</strong> Ibuprofène, Advil, Aspirine haute dose strictement proscrits.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 3 -->
+        <div class="bg-white/85 backdrop-blur-sm p-6 rounded-3xl border-2 border-emerald-200 shadow-sm space-y-4">
+          <div class="flex items-center gap-3 pb-3 border-b border-emerald-100">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-lg shadow-sm">
+              <i data-lucide="calendar-check" class="w-5 h-5 text-emerald-700"></i>
+            </div>
+            <div>
+              <h3 class="font-serif font-bold text-lg text-emerald-950">Préparatifs avant l'Arrivée</h3>
+              <p class="text-[11px] text-emerald-700">Chronologie sereine</p>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-xs text-stone-800 leading-relaxed">
+            <div class="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-200/70">
+              <strong class="font-bold text-emerald-950 block mb-1">T1 (Sem 1-13) : Fondations</strong>
+              <p class="text-stone-600 text-[11px]">Suivi rigoureux RMA, choix de la maternité et repos complet.</p>
+            </div>
+            <div class="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-200/70">
+              <strong class="font-bold text-emerald-950 block mb-1">T2 (Sem 14-27) : La Chambre</strong>
+              <p class="text-stone-600 text-[11px]">Liste de naissance, aménagement de la chambre et cours de préparation.</p>
+            </div>
+            <div class="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-200/70">
+              <strong class="font-bold text-emerald-950 block mb-1">T3 (Sem 28-36) : Matériel & Bébé</strong>
+              <p class="text-stone-600 text-[11px]">Installation du siège auto Isofix, lessive layette hypoallergénique, choix du pédiatre et valise prête dès 35 SA.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== WINDOW DETAIL MODAL ==================== -->
+  <div id="window-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="wood-grain w-full max-w-2xl rounded-[2rem] border-4 border-wood-400 shadow-2xl p-6 sm:p-8 transform scale-95 transition-transform duration-300 relative max-h-[90vh] overflow-y-auto">
+      
+      <div class="absolute top-4 left-4 brass-stud"></div>
+      <div class="absolute top-4 right-4 brass-stud"></div>
+      
+      <button id="btn-close-modal" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-wood-200 hover:bg-wood-300 text-wood-800 flex items-center justify-center transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-start gap-4 pr-10">
+        <div id="modal-fruit-badge" class="w-16 h-16 rounded-2xl bg-amber-100 border-2 border-brass flex items-center justify-center text-3xl shadow-inner flex-shrink-0">
+          🍓
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="modal-trimester-tag" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sage-200 text-sage-800 border border-sage-300">1er Trimestre</span>
+            <span id="modal-date-range" class="text-xs text-wood-600 font-medium">10 - 17 Nov. 2026</span>
+          </div>
+          <h3 id="modal-title" class="text-2xl font-serif font-bold text-wood-900 mt-1">Semaine 4 : La Nidation</h3>
+          <p id="modal-size-text" class="text-xs text-wood-700 font-semibold">Taille bébé : Graine de pavot • ~1 mm</p>
+        </div>
+      </div>
+
+      <div id="modal-clinical-box" class="mt-5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-950 flex items-start gap-3">
+        <div class="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
+          <i data-lucide="stethoscope" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <div class="font-bold uppercase tracking-wider text-[11px] text-emerald-800" id="modal-clinical-badge">Protocole RMA</div>
+          <div class="font-semibold mt-0.5" id="modal-clinical-desc">Dosage de Bêta-hCG post-FET</div>
+        </div>
+      </div>
+
+      <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white/70 p-4 rounded-2xl border border-wood-200 space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-wood-800 flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600"></i>
+            Développement Fœtal
+          </h4>
+          <p id="modal-fetal-summary" class="text-xs text-wood-700 leading-relaxed"></p>
+          <div class="pt-2 border-t border-wood-100 flex justify-between text-[11px] text-wood-600">
+            <span>Longueur : <strong id="modal-length">1 mm</strong></span>
+            <span>Poids : <strong id="modal-weight">&lt; 0.1 g</strong></span>
+          </div>
+        </div>
+
+        <div class="bg-white/70 p-4 rounded-2xl border border-wood-200 space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-wood-800 flex items-center gap-1.5">
+            <i data-lucide="user" class="w-3.5 h-3.5 text-wood-600"></i>
+            Ce que ressent Fatou
+          </h4>
+          <p id="modal-mom-summary" class="text-xs text-wood-700 leading-relaxed"></p>
+          <div class="pt-2 border-t border-wood-100 text-[11px] text-wood-600">
+            Conseil : <em>Hydratation continue & repos bienveillant.</em>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div class="mt-5 space-y-2">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-wood-800 flex items-center justify-between">
+          <span>Étapes & Check-list de la semaine</span>
+          <span class="text-[10px] text-wood-600 font-normal">Sauvegarde automatique</span>
+        </h4>
+        <div id="modal-checklist-container" class="space-y-1.5"></div>
+      </div>
+
+      <!-- French 3D Medical Video Player -->
+      <div id="modal-video-container" class="mt-5 rounded-2xl overflow-hidden border-2 border-wood-300 shadow-md bg-stone-900">
+        <div class="bg-wood-800 text-amber-50 px-3.5 py-2 flex items-center justify-between text-xs font-semibold">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="play-circle" class="w-4 h-4 text-amber-400"></i>
+            <span id="modal-video-title">Développement fœtal en vidéo (Animation 3D en Français)</span>
+          </span>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">Guide Médical</span>
+        </div>
+        <div class="relative w-full aspect-video bg-black">
+          <iframe id="modal-video-frame" class="w-full h-full" src="" title="Développement du fœtus dans l'utérus" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="p-2.5 bg-wood-100 text-wood-800 text-[11px] flex items-center justify-between">
+          <span id="modal-video-timestamp-note">Séquence calée sur le stade fœtal.</span>
+          <button type="button" id="modal-btn-mute-video" class="text-[10px] text-wood-600 hover:text-wood-900 underline font-medium">Arrêter vidéo</button>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-wood-200 flex items-center justify-between gap-3">
+        <button id="modal-btn-view3d" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-xl text-xs flex items-center gap-1.5 shadow transition">
+          <i data-lucide="box" class="w-4 h-4"></i>
+          <span>Visualiser en 3D</span>
+        </button>
+
+        <button id="modal-btn-close-bottom" class="px-4 py-2 bg-wood-200 hover:bg-wood-300 text-wood-900 font-semibold rounded-xl text-xs transition">
+          Fermer le volet
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== SETTINGS MODAL ==================== -->
+  <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="wood-grain w-full max-w-lg rounded-3xl border-4 border-wood-400 shadow-2xl p-6 relative">
+      <button id="btn-close-settings" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-wood-200 text-wood-800 flex items-center justify-center">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <h3 class="font-serif font-bold text-xl text-wood-900 mb-1">Paramètres du Transfert (FET)</h3>
+      <p class="text-xs text-wood-700 mb-4">Personnalisez votre date de transfert d'embryon et les détails du protocole.</p>
+
+      <form id="settings-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-wood-800 mb-1">Nom de la patiente</label>
+          <input type="text" id="setting-patient-name" value="Fatou" class="w-full text-xs p-2.5 bg-white border border-wood-300 rounded-xl">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-wood-800 mb-1">Date du Transfert d'Embryon Congelé (FET)</label>
+          <input type="date" id="setting-fet-date" value="2026-11-03" class="w-full text-xs p-2.5 bg-white border border-wood-300 rounded-xl">
+          <p class="text-[11px] text-wood-600 mt-1">Par défaut : Début Nov 2026 (03 Nov. 2026). Équivaut à 2 sem. + 5j d'aménorrhée.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-wood-800 mb-1">Âge de l'Embryon au Transfert</label>
+          <select id="setting-embryo-age" class="w-full text-xs p-2.5 bg-white border border-wood-300 rounded-xl">
+            <option value="5" selected>Blastocyste J5 (Standard RMA)</option>
+            <option value="6">Blastocyste J6</option>
+            <option value="3">Embryon J3 (Clivage)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-wood-800 mb-1">Praticien / Clinique</label>
+          <input type="text" id="setting-clinic" value="Dr. Anate Brauer — RMA of New York (East Side)" class="w-full text-xs p-2.5 bg-white border border-wood-300 rounded-xl">
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" id="btn-cancel-settings" class="px-4 py-2 rounded-xl text-xs font-medium text-wood-700 bg-wood-200 hover:bg-wood-300">Annuler</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-wood-800 hover:bg-wood-900 shadow">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT APPLICATION CODE ==================== -->
+  <script>
+    /**
+     * Pregnancy Knowledge Base (40 Weeks)
+     */
+    const WEEKS_DATA = [
+      {
+        week: 1, fruit: "Graine microscopique", fruitIcon: "🌱", fruitEn: "Microscopic Cell", length: "~0.1 mm", weight: "< 0.01 g", fhr: "--",
+        tag: "T1", titleFr: "Préparation de l'Endomètre", titleEn: "Endometrial Preparation",
+        fetalSummaryFr: "Phase de préparation hormonale préalable au transfert. L'endomètre s'épaissit sous œstrogènes pour accueillir le blastocyste.",
+        momSummaryFr: "Administration continue de progestérone (injections PIO ou ovules) pour préparer la fenêtre d'implantation.",
+        clinical: "RMA NY : Protocole de préparation endométriale & dosages sériques.",
+        checklist: ["Prise rigoureuse des œstrogènes / progestérone", "Hydratation optimale (2L/jour)", "Repos bienveillant"]
+      },
+      {
+        week: 2, fruit: "Blastocyste Sélectionné", fruitIcon: "🔬", fruitEn: "Selected Blastocyst", length: "~0.15 mm", weight: "< 0.01 g", fhr: "--",
+        tag: "T1", titleFr: "Transfert d'Embryon Congelé (FET)", titleEn: "Frozen Embryo Transfer (FET)",
+        fetalSummaryFr: "Le blastocyste euploïde masculin sélectionné est délicatement déposé dans la cavité utérine par le Dr. Brauer.",
+        momSummaryFr: "Procédure indolore sous contrôle échographique. Début de l'attente (Two-Week Wait).",
+        clinical: "RMA NY : Transfert du blastocyste J5 sélectionné (Garçon).",
+        checklist: ["Jour du transfert à RMA New York", "Repos relatif post-transfert", "Poursuite du soutien hormonal"]
+      },
+      {
+        week: 3, fruit: "Graine de vanille", fruitIcon: "✨", fruitEn: "Vanilla Seed", length: "~0.2 mm", weight: "< 0.01 g", fhr: "--",
+        tag: "T1", titleFr: "Éclosion & Début d'Implantation", titleEn: "Hatching & Implantation",
+        fetalSummaryFr: "Le blastocyste éclot de sa zone pellucide et commence à s'ancrer dans l'endomètre réceptif.",
+        momSummaryFr: "Possibles légers picotements ou tiraillements pelviens d'implantation.",
+        clinical: "Surveillance post-FET : Poursuite du soutien lutéal.",
+        checklist: ["Éviter les efforts physiques intenses", "Alimentation riche en antioxydants", "Respiration calme"]
+      },
+      {
+        week: 4, fruit: "Graine de pavot", fruitIcon: "🌾", fruitEn: "Poppy Seed", length: "~1 mm", weight: "< 0.1 g", fhr: "--",
+        tag: "T1", titleFr: "Le Dosage Bêta-hCG Confirmé !", titleEn: "Beta-hCG Confirmation Day",
+        fetalSummaryFr: "L'embryon est implanté. Les cellules trophoblastiques sécrètent activement l'hCG dans la circulation maternelle.",
+        momSummaryFr: "Moment de la première prise de sang à RMA of New York. L'émotion est immense !",
+        clinical: "RMA Phase 3 : 1er Dosage sérique Bêta-hCG (9 à 14 jours post-FET).",
+        checklist: ["Prise de sang Bêta-hCG chez RMA of New York", "Appel de confirmation de l'équipe clinique", "Célébration douce"]
+      },
+      {
+        week: 5, fruit: "Graine de pomme", fruitIcon: "🍎", fruitEn: "Apple Seed", length: "~2 mm", weight: "~0.1 g", fhr: "80 - 100 BPM",
+        tag: "T1", titleFr: "Le Sac Gestationnel Visible", titleEn: "Gestational Sac Visualization",
+        fetalSummaryFr: "Le sac gestationnel et la vésicule vitelline apparaissent nettement à l'échographie endovaginale.",
+        momSummaryFr: "Signes sympathiques de grossesse : odorat accru, seins sensibles, somnolence.",
+        clinical: "RMA Phase 3 : Échographie de localisation intra-utérine & contrôle cinétique hCG.",
+        checklist: ["Échographie de localisation du sac chez RMA", "Confirmation du doublement hCG", "Vitamines prénatales avec folates"]
+      },
+      {
+        week: 6, fruit: "Pois doux", fruitIcon: "🫛", fruitEn: "Sweet Pea", length: "~5 mm", weight: "~0.3 g", fhr: "100 - 120 BPM",
+        tag: "T1", titleFr: "Premières Pulsations Cardiaques", titleEn: "First Cardiac Flutter",
+        fetalSummaryFr: "Le tube cardiaque fœtal commence à pulser de manière rythmée. Le tube neural se referme.",
+        momSummaryFr: "Premières nausées matinales possibles. Privilégiez de petites collations fréquentes.",
+        clinical: "RMA Phase 3 : Échographie de viabilité fœtale (détection de l'activité cardiaque).",
+        checklist: ["Échographie cardiaque précoce RMA", "Biscottes au réveil pour calmer l'estomac", "Boire par petites gorgées"]
+      },
+      {
+        week: 7, fruit: "Myrtille", fruitIcon: "🫐", fruitEn: "Blueberry", length: "~10 mm", weight: "~0.8 g", fhr: "130 - 150 BPM",
+        tag: "T1", titleFr: "Bourgeons des Bras & Jambes", titleEn: "Limb Buds & Growth",
+        fetalSummaryFr: "Le cerveau croît à une vitesse fulgurante. Les bourgeons des bras et des jambes s'allongent.",
+        momSummaryFr: "Envies fréquentes d'uriner dues à l'augmentation du débit sanguin rénal.",
+        clinical: "RMA Phase 3 : Échographie hebdomadaire de contrôle de croissance.",
+        checklist: ["Suivi échographique hebdomadaire RMA", "Vérification des taux hormonaux", "Siestes régulières"]
+      },
+      {
+        week: 8, fruit: "Framboise", fruitIcon: "🍇", fruitEn: "Raspberry", length: "~1.6 cm", weight: "~1.2 g", fhr: "150 - 170 BPM",
+        tag: "T1", titleFr: "Transition & Graduation RMA", titleEn: "Graduation from RMA NY",
+        fetalSummaryFr: "Les doigts et orteils se séparent. Les paupières recouvrent partiellement les yeux.",
+        momSummaryFr: "Fin progressive du suivi intensif en fertilité. Moment émouvant d'au revoir à l'équipe RMA !",
+        clinical: "RMA Phase 3 / 4 : Remise officielle du dossier médical & graduation vers l'obstétricien traitant.",
+        checklist: ["Dernière consultation & graduation RMA NY", "Photo souvenir avec le Dr. Brauer", "Transmission du dossier à l'OB/GYN"]
+      },
+      {
+        week: 9, fruit: "Cerise", fruitIcon: "🍒", fruitEn: "Cherry", length: "~2.3 cm", weight: "~2 g", fhr: "160 - 175 BPM",
+        tag: "T1", titleFr: "De l'Embryon au Fœtus", titleEn: "Transition to Fetus",
+        fetalSummaryFr: "La queue embryonnaire a régressé. L'embryon est officiellement qualifié de fœtus !",
+        momSummaryFr: "La taille de l'utérus a doublé (environ la taille d'un pamplemousse).",
+        clinical: "Phase 4 : Validation du calendrier de suivi prénatal chez l'OB/GYN.",
+        checklist: ["Prendre rendez-vous pour le 1er grand bilan prénatal", "Ajustement du sevrage hormonal selon directives RMA", "Tenues confortables"]
+      },
+      {
+        week: 10, fruit: "Fraise des bois", fruitIcon: "🍓", fruitEn: "Strawberry", length: "~3.1 cm", weight: "~4 g", fhr: "155 - 170 BPM",
+        tag: "T1", titleFr: "Organes Vitaux Fonctionnels", titleEn: "Functional Vital Organs",
+        fetalSummaryFr: "Les reins commencent à produire de l'urine fœtale et les réflexes de déglutition s'initient.",
+        momSummaryFr: "Sensation de plénitude pelvienne. Vos cheveux et votre peau s'illuminent.",
+        clinical: "Phase 4 : Arrêt complet du protocole hormonal (le placenta prend le relais à 100%).",
+        checklist: ["Arrêt de la progestérone (sur confirmation RMA)", "Bilan sanguin prénatal standard (sérologies, NFS)", "Hydratation"]
+      },
+      {
+        week: 11, fruit: "Figue", fruitIcon: "🫐", fruitEn: "Fig", length: "~4.1 cm", weight: "~7 g", fhr: "150 - 165 BPM",
+        tag: "T1", titleFr: "Dépistage Prénatal (DPNI)", titleEn: "NIPT & Early Screening",
+        fetalSummaryFr: "Les os commencent à s'ossifier. Le fœtus effectue des étirements libres dans le liquide amniotique.",
+        momSummaryFr: "Période idéale pour effectuer le DPNI (NIPT) sanguin maternel.",
+        clinical: "Phase 4 : DPNI sanguin maternel & programmation de l'écho de clarté nucale.",
+        checklist: ["Prélèvement sanguin DPNI (NIPT)", "Planifier la consultation du 1er trimestre", "Repos"]
+      },
+      {
+        week: 12, fruit: "Prune", fruitIcon: "🍑", fruitEn: "Plum", length: "~5.4 cm", weight: "~14 g", fhr: "145 - 160 BPM",
+        tag: "T1", titleFr: "Échographie du Premier Trimestre", titleEn: "1st Trimester NT Scan",
+        fetalSummaryFr: "Tous les systèmes d'organes sont construits. Le profil de votre garçon est magnifique.",
+        momSummaryFr: "L'utérus remonte au-dessus du pubis. Les nausées diminuent enfin.",
+        clinical: "Phase 4 : Échographie de clarté nucale (NT Scan) & consultation prénatale approfondie OB.",
+        checklist: ["Échographie de clarté nucale", "Première consultation complète OB/GYN", "Garder les clichés échographiques"]
+      },
+      {
+        week: 13, fruit: "Pêche blanche", fruitIcon: "🍑", fruitEn: "White Peach", length: "~7.4 cm", weight: "~23 g", fhr: "140 - 160 BPM",
+        tag: "T2", titleFr: "Entrée dans le Second Trimestre !", titleEn: "Welcome to 2nd Trimester",
+        fetalSummaryFr: "Des empreintes digitales uniques et permanentes se dessinent sur ses pulpes de doigts.",
+        momSummaryFr: "Le regain d'énergie arrive ! Le risque de fausse couche chute drastiquement.",
+        clinical: "Clôture sereine du 1er trimestre obstétrical.",
+        checklist: ["Annoncer la nouvelle aux proches si souhaité", "Appliquer une crème nourrissante anti-vergetures", "Marche quotidienne douce"]
+      },
+      {
+        week: 14, fruit: "Citron doux", fruitIcon: "🍋", fruitEn: "Lemon", length: "~8.7 cm", weight: "~43 g", fhr: "140 - 155 BPM",
+        tag: "T2", titleFr: "Expressions & Mimiques Fœtales", titleEn: "Facial Expressions",
+        fetalSummaryFr: "Les muscles faciaux s'activent : bébé fronce les sourcils et suce son pouce.",
+        momSummaryFr: "Le ventre s'arrondit délicatement. L'appétit revient avec vitalité.",
+        clinical: "Surveillance obstétricale mensuelle de routine.",
+        checklist: ["Sélectionner des pantalons de maternité", "Besoins accrus en fer et calcium", "Bien s'étirer"]
+      },
+      {
+        week: 15, fruit: "Pomme rouge", fruitIcon: "🍎", fruitEn: "Red Apple", length: "~10.1 cm", weight: "~70 g", fhr: "140 - 155 BPM",
+        tag: "T2", titleFr: "Sensibilité à la Lumière", titleEn: "Light Perception",
+        fetalSummaryFr: "Bien que les paupières soient closes, ses yeux perçoivent la lumière à travers votre ventre.",
+        momSummaryFr: "Sensation de bien-être physique ('pregnancy glow'). Pensez à dormir sur le côté.",
+        clinical: "Contrôle prénatal mensuel : tension artérielle, protéinurie.",
+        checklist: ["Utiliser un coussin de maternité ergonomique", "Surveiller sa posture assise", "Boire 2L d'eau par jour"]
+      },
+      {
+        week: 16, fruit: "Avocat", fruitIcon: "🥑", fruitEn: "Avocado", length: "~11.6 cm", weight: "~100 g", fhr: "135 - 150 BPM",
+        tag: "T2", titleFr: "Circulation & Vaisseaux Puissants", titleEn: "Circulatory Vigor",
+        fetalSummaryFr: "Son petit cœur propulse environ 25 litres de sang chaque jour. Ses jambes s'allongent.",
+        momSummaryFr: "Certaines mamans attentives ressentent des frémissements comme des bulles ou des papillons.",
+        clinical: "Planification de la grande échographie morphologique du 2e trimestre.",
+        checklist: ["Fixer l'écho morphologique (Sem. 20-22)", "Contrôle chez le dentiste", "Noter les petits frémissements"]
+      },
+      {
+        week: 17, fruit: "Grenade", fruitIcon: "🫐", fruitEn: "Pomegranate", length: "~13 cm", weight: "~140 g", fhr: "135 - 150 BPM",
+        tag: "T2", titleFr: "Tissu Adipeux Brun", titleEn: "Adipose Layer",
+        fetalSummaryFr: "Le tissu adipeux se dépose sous sa peau pour l'aider à réguler sa température à la naissance.",
+        momSummaryFr: "Le centre de gravité se déplace. Les ligaments ronds peuvent tirailler au changement de position.",
+        clinical: "Surveillance de la prise de poids et hauteur utérine.",
+        checklist: ["Éviter les mouvements brusques", "Étirements doux des hanches", "Écouter de la musique relaxante"]
+      },
+      {
+        week: 18, fruit: "Poire d'Anjou", fruitIcon: "🍐", fruitEn: "Bell Pepper", length: "~14.2 cm", weight: "~190 g", fhr: "130 - 145 BPM",
+        tag: "T2", titleFr: "L'Ouïe Fœtale s'Éveille", titleEn: "Hearing Emerges",
+        fetalSummaryFr: "Les osselets de l'oreille s'ossifient : bébé entend les battements de votre cœur et votre voix !",
+        momSummaryFr: "Premiers mouvements fœtaux francs nettement perceptibles pour Fatou.",
+        clinical: "Phase 4 : Reconnaissance des mouvements fœtaux (Quickening).",
+        checklist: ["Parler doucement à votre petit garçon", "Noter les heures où il bouge le plus", "Bonnes chaussures de marche"]
+      },
+      {
+        week: 19, fruit: "Mangue mûre", fruitIcon: "🥭", fruitEn: "Mango", length: "~15.3 cm", weight: "~240 g", fhr: "130 - 145 BPM",
+        tag: "T2", titleFr: "Vernix Caseosa Protecteur", titleEn: "Vernix Shield",
+        fetalSummaryFr: "Une crème blanche naturelle (le vernix) protège sa peau du liquide amniotique.",
+        momSummaryFr: "La ligne brune ('linea nigra') peut commencer à apparaître sur votre ventre.",
+        clinical: "Préparation de l'échographie d'anatomie de niveau II.",
+        checklist: ["Commencer la liste des souhaits layette", "Séance de yoga prénatal", "Moment calme le soir"]
+      },
+      {
+        week: 20, fruit: "Banane", fruitIcon: "🍌", fruitEn: "Banana", length: "~25.6 cm (tête-talon)", weight: "~300 g", fhr: "130 - 145 BPM",
+        tag: "T2", titleFr: "La Moitié du Chemin !", titleEn: "Midway Milestone",
+        fetalSummaryFr: "La taille fœtale se mesure désormais de la tête aux talons. Ses cycles de sommeil émergent.",
+        momSummaryFr: "Le fond utérin arrive au niveau du nombril. Le papa peut sentir ses coups sur le ventre !",
+        clinical: "Phase 4 : Consultation prénatale du 5e mois.",
+        checklist: ["Fêter le cap des 20 semaines !", "Partager les petits coups avec le conjoint", "Confirmer la date d'écho morphologique"]
+      },
+      {
+        week: 21, fruit: "Carotte", fruitIcon: "🥕", fruitEn: "Large Carrot", length: "~26.7 cm", weight: "~360 g", fhr: "130 - 145 BPM",
+        tag: "T2", titleFr: "Papilles Gustatives Actives", titleEn: "Taste Buds",
+        fetalSummaryFr: "Le fœtus goûte les nuances aromatiques des repas de Fatou dans le liquide amniotique qu'il avale.",
+        momSummaryFr: "Peau parfois plus sèche : massez avec du beurre de karité ou huile d'amande douce.",
+        clinical: "Surveillance de la vitalité fœtale et du col utérin.",
+        checklist: ["Hydrater généreusement le ventre", "Repas sains et variés", "Renseignements cours de préparation"]
+      },
+      {
+        week: 22, fruit: "Papaye", fruitIcon: "🍈", fruitEn: "Papaya", length: "~27.8 cm", weight: "~430 g", fhr: "130 - 145 BPM",
+        tag: "T2", titleFr: "Échographie Morphologique Niveau II", titleEn: "Anatomy Scan (Level II)",
+        fetalSummaryFr: "Examen méticuleux de chaque structure : cerveau, 4 cavités cardiaques, reins, colonne et profil.",
+        momSummaryFr: "Grand rendez-vous rassurant. Vous contemplez tous les détails de votre petit garçon.",
+        clinical: "Phase 4 : Échographie morphologique détaillée de niveau II (Semaine 22).",
+        checklist: ["Passer l'échographie morphologique niveau II", "Demander les clichés 3D/4D du visage", "Classer le compte-rendu"]
+      },
+      {
+        week: 23, fruit: "Pamplemousse", fruitIcon: "🍊", fruitEn: "Grapefruit", length: "~28.9 cm", weight: "~500 g", fhr: "125 - 140 BPM",
+        tag: "T2", titleFr: "Le Cap du Demi-Kilo", titleEn: "Half-Kilo Mark",
+        fetalSummaryFr: "Bébé atteint 500 grammes ! Les poumons développent leurs cellules alvéolaires de type II.",
+        momSummaryFr: "Légère rétention d'eau le soir : surélevez vos jambes 15 minutes avant de dormir.",
+        clinical: "Bilan sanguin du 2e trimestre & contrôle de numération formule sanguine.",
+        checklist: ["Surélever les jambes en soirée", "Collations riches en magnésium", "Inscription définitive à la maternité"]
+      },
+      {
+        week: 24, fruit: "Épi de maïs doux", fruitIcon: "🌽", fruitEn: "Ear of Corn", length: "~30 cm", weight: "~600 g", fhr: "125 - 140 BPM",
+        tag: "T2", titleFr: "Seuil de Viabilité & Test Glucose", titleEn: "Viability & Glucose Test",
+        fetalSummaryFr: "Étape fondamentale : le fœtus franchit le seuil médical de viabilité extra-utérine.",
+        momSummaryFr: "Test de dépistage de l'hyperglycémie provoquée par voie orale (diabète gestationnel HGPO 75g).",
+        clinical: "Phase 4 : Dépistage du diabète gestationnel (Test O'Sullivan / HGPO Semaines 24-28).",
+        checklist: ["Réaliser le test HGPO du glucose", "Vérifier le taux de ferritine", "Célébrer la viabilité fœtale"]
+      },
+      {
+        week: 25, fruit: "Rutabaga / Navet", fruitIcon: "🥔", fruitEn: "Rutabaga", length: "~34.6 cm", weight: "~660 g", fhr: "125 - 140 BPM",
+        tag: "T2", titleFr: "Sens de l'Équilibre (Vestibule)", titleEn: "Vestibular Balance",
+        fetalSummaryFr: "L'appareil vestibulaire de l'oreille interne est mûr : bébé sait s'il est tête en haut ou en bas.",
+        momSummaryFr: "Mouvements rythmés : vous commencez à distinguer ses périodes d'éveil et de repos.",
+        clinical: "Consultation obstétricale mensuelle de suivi.",
+        checklist: ["Suivre les mouvements de bébé", "Exercices doux de périnée (Kegel)", "Choisir le lit et le siège auto homologué"]
+      },
+      {
+        week: 26, fruit: "Courge Butternut", fruitIcon: "🎃", fruitEn: "Butternut Squash", length: "~35.6 cm", weight: "~760 g", fhr: "125 - 140 BPM",
+        tag: "T2", titleFr: "Les Yeux s'Entrouvrent", titleEn: "Eyes Open & Blink",
+        fetalSummaryFr: "Ses yeux s'ouvrent ! Les cils et sourcils sont formés. Il cligne des paupières.",
+        momSummaryFr: "Contractions d'entraînement physiologiques de Braxton Hicks (indolores et irrégulières).",
+        clinical: "Surveillance de la hauteur utérine et de la tension artérielle.",
+        checklist: ["Distinguer Braxton Hicks du vrai travail", "Prendre un bain tiède délassant", "Rédiger son projet de naissance"]
+      },
+      {
+        week: 27, fruit: "Chou-fleur", fruitIcon: "🥦", fruitEn: "Cauliflower", length: "~36.6 cm", weight: "~875 g", fhr: "125 - 140 BPM",
+        tag: "T3", titleFr: "Bienvenue dans le 3e Trimestre !", titleEn: "Welcome to 3rd Trimester",
+        fetalSummaryFr: "Le cerveau commence à former ses sillons et circonvolutions pour décupler sa surface.",
+        momSummaryFr: "Dernière ligne droite ! Le souffle peut être un peu plus court dans les escaliers.",
+        clinical: "Entrée officielle dans le troisième trimestre obstétrical.",
+        checklist: ["Débuter les cours de préparation à la naissance", "Préparer la valise de maternité", "Respiration abdominale"]
+      },
+      {
+        week: 28, fruit: "Aubergine", fruitIcon: "🍆", fruitEn: "Eggplant", length: "~37.6 cm", weight: "~1000 g (1 kg)", fhr: "120 - 140 BPM",
+        tag: "T3", titleFr: "Le Cap du Kilogramme !", titleEn: "The 1 Kilo Milestone",
+        fetalSummaryFr: "Bébé pèse désormais 1 kg ! Il pratique des mouvements respiratoires d'entraînement continus.",
+        momSummaryFr: "Injection d'anti-D (Rhogam) si votre rhésus sanguin est négatif.",
+        clinical: "Phase 4 : Bilan du 7e mois & injection prophylactique anti-D si rhésus négatif.",
+        checklist: ["Contrôle biologique du 3e trimestre", "Séance photo souvenir de grossesse", "Massage doux du dos"]
+      },
+      {
+        week: 29, fruit: "Courge gland (Acorn)", fruitIcon: "🍈", fruitEn: "Acorn Squash", length: "~38.6 cm", weight: "~1.15 kg", fhr: "120 - 140 BPM",
+        tag: "T3", titleFr: "Fixation Intensive du Calcium", titleEn: "Bone Fortification",
+        fetalSummaryFr: "Bébé capte environ 250 mg de calcium chaque jour dans votre circulation pour solidifier son squelette.",
+        momSummaryFr: "Fabrication de colostrum dans les glandes mammaires, le premier lait précieux.",
+        clinical: "Contrôle de la hauteur utérine et position fœtale.",
+        checklist: ["Maintenir de bons apports en calcium et vitamine D", "Tester des postures confortables sur coussin", "Vérifier le matériel d'allaitement"]
+      },
+      {
+        week: 30, fruit: "Chou blanc", fruitIcon: "🥬", fruitEn: "Cabbage", length: "~39.9 cm", weight: "~1.3 kg", fhr: "120 - 140 BPM",
+        tag: "T3", titleFr: "Sommeil Paradoxal & Rêves", titleEn: "REM Sleep & Dreams",
+        fetalSummaryFr: "Les tracés montrent des phases de sommeil paradoxal : votre petit garçon commence à rêver !",
+        momSummaryFr: "L'utérus appuie légèrement sur l'estomac ; mangez léger et fractionné pour éviter les reflux.",
+        clinical: "Surveillance obstétricale bimensuelle.",
+        checklist: ["Fractionner les repas en petites portions", "Éviter les plats épicés ou gras le soir", "Congé maternité validé"]
+      },
+      {
+        week: 31, fruit: "Noix de coco", fruitIcon: "🥥", fruitEn: "Coconut", length: "~41.1 cm", weight: "~1.5 kg", fhr: "120 - 140 BPM",
+        tag: "T3", titleFr: "Cinq Sens Pleinement Actifs", titleEn: "Sensory Awakening",
+        fetalSummaryFr: "Bébé tourne la tête vers les sons familiers, réagit aux caresses et suce ses orteils.",
+        momSummaryFr: "Fatou sent des poussées nettes contre les côtes. Bébé déborde de vitalité.",
+        clinical: "Planification de l'échographie du 3e trimestre.",
+        checklist: ["Exercices de respiration lente", "Préparer la chambre de bébé", "Régler la température de la chambre à 19°C"]
+      },
+      {
+        week: 32, fruit: "Melon Cantaloup", fruitIcon: "🍈", fruitEn: "Cantaloupe", length: "~42.4 cm", weight: "~1.7 kg", fhr: "120 - 140 BPM",
+        tag: "T3", titleFr: "Écho de Croissance & Placenta", titleEn: "Growth & Placental Scan",
+        fetalSummaryFr: "Estimation pondérale fœtale précise, volume du liquide amniotique et position placentaire.",
+        momSummaryFr: "Beaucoup de bébés se positionnent tête en bas (présentation céphalique) dès cette semaine.",
+        clinical: "Phase 4 : Échographie de croissance et du placenta (Semaine 32).",
+        checklist: ["Échographie de croissance du 3e trimestre", "Vérifier le positionnement du placenta", "Consultation anesthésie"]
+      },
+      {
+        week: 33, fruit: "Ananas", fruitIcon: "🍍", fruitEn: "Pineapple", length: "~43.7 cm", weight: "~1.9 kg", fhr: "115 - 135 BPM",
+        tag: "T3", titleFr: "Transfert d'Immunité Maternelle", titleEn: "Antibody Transfer",
+        fetalSummaryFr: "Les anticorps maternels (IgG) traversent le placenta en abondance pour son immunité néonatale.",
+        momSummaryFr: "Prenez du temps pour vous reposer dans la journée. Les nuits peuvent être entrecoupées.",
+        clinical: "Consultations rapprochées toutes les deux semaines.",
+        checklist: ["Consultation pré-anesthésique", "Vérifier la trousse de toilette maternité", "Entraînement respiration poussée"]
+      },
+      {
+        week: 34, fruit: "Cantaloup mûr", fruitIcon: "🍈", fruitEn: "Honeydew Melon", length: "~45 cm", weight: "~2.15 kg", fhr: "115 - 135 BPM",
+        tag: "T3", titleFr: "Maturation Pulmonaire Avancée", titleEn: "Lung Maturation",
+        fetalSummaryFr: "Les poumons produisent un surfactant abondant évitant l'affaissement des alvéoles.",
+        momSummaryFr: "Pression accrue dans le bas-ventre lorsque la tête s'engage vers le bassin.",
+        clinical: "Surveillance de la présentation fœtale et du bien-être maternel.",
+        checklist: ["Installer le siège auto Isofix dans le véhicule", "Vérifier l'itinéraire vers la maternité", "Plats maison au congélateur"]
+      },
+      {
+        week: 35, fruit: "Courge spaghetti", fruitIcon: "🎃", fruitEn: "Spaghetti Squash", length: "~46.2 cm", weight: "~2.4 kg", fhr: "115 - 135 BPM",
+        tag: "T3", titleFr: "Dépistage Streptocoque B (SGB)", titleEn: "GBS Screening",
+        fetalSummaryFr: "Le système nerveux est structuré. Bébé a de belles joues potelées avec des réserves de graisse.",
+        momSummaryFr: "Prélèvement vaginal simple et rapide pour détecter le streptocoque B.",
+        clinical: "Phase 4 : Dépistage du SGB (Semaines 35-37) & révision finale du projet de naissance.",
+        checklist: ["Prélèvement de dépistage du Streptocoque B", "Revue du projet de naissance avec la sage-femme", "Valise maternité bouclée"]
+      },
+      {
+        week: 36, fruit: "Papaye géante", fruitIcon: "🍈", fruitEn: "Giant Papaya", length: "~47.4 cm", weight: "~2.6 kg", fhr: "115 - 135 BPM",
+        tag: "T3", titleFr: "Descente dans le Bassin", titleEn: "Pelvic Engagement",
+        fetalSummaryFr: "Bébé commence son engagement dans le bassin. Le fin duvet (lanugo) commence à tomber.",
+        momSummaryFr: "La respiration redevient plus facile car l'utérus descend légèrement !",
+        clinical: "Consultation obstétricale hebdomadaire jusqu'au terme.",
+        checklist: ["Consultation hebdomadaire", "Massage du périnée avec huile douce", "Dormir dès que possible"]
+      },
+      {
+        week: 37, fruit: "Grande pastèque jaune", fruitIcon: "🍉", fruitEn: "Winter Melon", length: "~48.6 cm", weight: "~2.85 kg", fhr: "110 - 135 BPM",
+        tag: "T3", titleFr: "Grossesse Officiellement à Terme !", titleEn: "Early Term Milestone",
+        fetalSummaryFr: "Félicitations Fatou ! À 37 semaines, bébé est à terme et peut naître en toute sécurité.",
+        momSummaryFr: "Perte possible du bouchon muqueux. Surveillez les contractions régulières.",
+        clinical: "Phase 4 : Début de la période d'accouchement à terme (Semaines 37 à 41).",
+        checklist: ["Valise de maternité prête près de la porte", "Numéros d'urgence enregistrés", "Confiance et sérénité"]
+      },
+      {
+        week: 38, fruit: "Courge d'hiver", fruitIcon: "🎃", fruitEn: "Winter Squash", length: "~49.8 cm", weight: "~3.1 kg", fhr: "110 - 135 BPM",
+        tag: "T3", titleFr: "Réflexe de Préhension Puissant", titleEn: "Grasp Reflex",
+        fetalSummaryFr: "Ses ongles dépassent le bout de ses doigts. Le réflexe de serrer fermement un doigt est prêt.",
+        momSummaryFr: "Votre corps est prêt. Pratiquez les mouvements de bassin sur le ballon de Pilates.",
+        clinical: "Surveillance du col utérin et monitoring fœtal (RCF).",
+        checklist: ["Monitoring fœtal au cabinet", "Exercices relaxants sur ballon de gym", "Visualiser une naissance douce"]
+      },
+      {
+        week: 39, fruit: "Citrouille dorée", fruitIcon: "🎃", fruitEn: "Golden Pumpkin", length: "~50.7 cm", weight: "~3.3 kg", fhr: "110 - 135 BPM",
+        tag: "T3", titleFr: "À Terme Complet (Full Term)", titleEn: "Full Term Ready",
+        fetalSummaryFr: "Bébé emmagasine des réserves de glycogène dans son foie pour ses premières heures sur Terre.",
+        momSummaryFr: "Le col commence à s'effacer. Guettez les contractions toutes les 5 minutes pendant 1 heure.",
+        clinical: "Évaluation obstétricale finale et bien-être fœtal.",
+        checklist: ["Repérer la règle des 5-1-1", "Vérifier la batterie des téléphones", "Repos complet"]
+      },
+      {
+        week: 40, fruit: "Pastèque juteuse", fruitIcon: "🍉", fruitEn: "Watermelon", length: "~51.5 cm", weight: "~3.5 kg", fhr: "110 - 135 BPM",
+        tag: "T3", titleFr: "Le Grand Jour : La Naissance !", titleEn: "Birth & Welcome",
+        fetalSummaryFr: "Le terme calculé d'après votre transfert RMA ! Votre petit garçon est prêt à vous rencontrer.",
+        momSummaryFr: "Travail d'accouchement, naissance merveilleuse et première tétée dans les bras de Fatou !",
+        clinical: "Phase 4 : Accouchement, délivrance, peau-à-peau immédiat et soins du nouveau-né.",
+        checklist: ["Départ serein pour la maternité", "Accueil de votre précieux bébé", "Célébrer tout ce beau parcours !"]
+      }
+    ];
+
+    /**
+     * App State
+     */
+    const STATE = {
+      patientName: "Fatou",
+      fetDateString: "2026-11-03",
+      embryoAgeDays: 5,
+      currentLang: "fr",
+      selectedWeek: 12,
+      openWindows: {},
+      completedChecklist: {},
+      journalEntries: [],
+      waterGlasses: 4,
+      hospitalBag: {},
+      customBagItems: [],
+      contractionsHistory: [],
+      weightRecords: [
+        { week: 4, weight: 61.2 },
+        { week: 8, weight: 61.8 },
+        { week: 12, weight: 62.4 }
+      ],
+      medications: {
+        "pio-inj": false,
+        "estrace": false,
+        "prenatal": true,
+        "folate": true,
+        "aspirin-baby": true
+      },
+      birthPlan: {
+        "epidural": "yes",
+        "skinToSkin": true,
+        "delayedCord": true,
+        "dimLights": true,
+        "music": true,
+        "partnerCutCord": true
+      },
+      photos: [],
+      audioPlaying: false
+    };
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem("fatou_pregnancy_master_state");
+        if (saved) Object.assign(STATE, JSON.parse(saved));
+      } catch (e) {
+        console.warn("Storage error", e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem("fatou_pregnancy_master_state", JSON.stringify(STATE));
+      } catch (e) {
+        console.warn("Save error", e);
+      }
+    }
+
+    /**
+     * Gestational Age Math for Day 5 FET
+     */
+    function computeMetrics() {
+      const fetDate = new Date(STATE.fetDateString + "T00:00:00");
+      const today = new Date();
+      const lmpEquivalent = new Date(fetDate.getTime() - (14 + STATE.embryoAgeDays) * 24 * 60 * 60 * 1000);
+      const edd = new Date(lmpEquivalent.getTime() + 280 * 24 * 60 * 60 * 1000);
+
+      const diffMs = today.getTime() - lmpEquivalent.getTime();
+      const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+
+      let currentGAWeeks = Math.floor(diffDays / 7);
+      let currentGADays = diffDays % 7;
+      if (diffDays < 0) { currentGAWeeks = 0; currentGADays = 0; }
+
+      const daysUntilEDD = Math.max(0, Math.ceil((edd.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)));
+
+      let trimester = 1;
+      let trimesterLabel = "1er Trimestre (T1)";
+      if (currentGAWeeks >= 28) {
+        trimester = 3;
+        trimesterLabel = "3e Trimestre (T3)";
+      } else if (currentGAWeeks >= 13) {
+        trimester = 2;
+        trimesterLabel = "2e Trimestre (T2)";
+      }
+
+      const clampedDays = Math.max(0, Math.min(280, diffDays));
+      const percent = Math.min(100, Math.round((clampedDays / 280) * 100));
+
+      return { fetDate, lmpEquivalent, edd, diffDays, currentGAWeeks, currentGADays, daysUntilEDD, trimester, trimesterLabel, percent };
+    }
+
+    function getWeekDateRange(weekNum) {
+      const { lmpEquivalent } = computeMetrics();
+      const startMs = lmpEquivalent.getTime() + (weekNum - 1) * 7 * 24 * 60 * 60 * 1000;
+      const endMs = startMs + 6 * 24 * 60 * 60 * 1000;
+      const startDate = new Date(startMs);
+      const endDate = new Date(endMs);
+      const options = { month: 'short', day: 'numeric', year: 'numeric' };
+      const optionsNoYear = { month: 'short', day: 'numeric' };
+      return `${startDate.toLocaleDateString(STATE.currentLang === 'fr' ? 'fr-FR' : 'en-US', optionsNoYear)} — ${endDate.toLocaleDateString(STATE.currentLang === 'fr' ? 'fr-FR' : 'en-US', options)}`;
+    }
+
+    function updateHeaderUI() {
+      const metrics = computeMetrics();
+      document.getElementById('current-ga-badge').textContent = `${metrics.currentGAWeeks} sem. + ${metrics.currentGADays} j`;
+      document.getElementById('current-edd-badge').textContent = metrics.edd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+      document.getElementById('current-countdown-badge').textContent = `~${metrics.daysUntilEDD} Jours`;
+      document.getElementById('trimester-indicator').textContent = `${metrics.trimesterLabel} • Phase Active`;
+      document.getElementById('progress-bar-fill').style.width = `${Math.max(5, metrics.percent)}%`;
+      document.getElementById('progress-percent-label').textContent = `${metrics.percent}%`;
+    }
+
+    /**
+     * 40 Wooden Windows Board
+     */
+    function renderWindowsGrid() {
+      const container = document.getElementById('windows-grid');
+      const jumpSelect = document.getElementById('select-week-jump');
+      container.innerHTML = '';
+      jumpSelect.innerHTML = '';
+
+      WEEKS_DATA.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w.week;
+        opt.textContent = `Semaine ${w.week} (${w.fruit})`;
+        if (w.week === STATE.selectedWeek) opt.selected = true;
+        jumpSelect.appendChild(opt);
+
+        const card = document.createElement('div');
+        const isOpen = !!STATE.openWindows[w.week];
+        card.className = `window-card relative rounded-2xl cursor-pointer select-none ${isOpen ? 'ring-2 ring-amber-600' : ''}`;
+        card.id = `window-card-${w.week}`;
+
+        let bgPalette = "from-[#DFECE4] to-[#C2D9CB] border-[#9EBEAC]";
+        let trimBadge = "T1";
+        let trimBadgeClass = "bg-sage-600 text-white";
+        if (w.week >= 27) {
+          bgPalette = "from-[#FEF8C8] to-[#FCEF90] border-[#EABF23]";
+          trimBadge = "T3";
+          trimBadgeClass = "bg-amber-600 text-white";
+        } else if (w.week >= 13) {
+          bgPalette = "from-[#FFEBDC] to-[#FFD3B5] border-[#F59A61]";
+          trimBadge = "T2";
+          trimBadgeClass = "bg-peach-500 text-white";
+        }
+
+        const dateRangeStr = getWeekDateRange(w.week);
+
+        card.innerHTML = `
+          <div class="h-44 sm:h-48 rounded-2xl bg-gradient-to-br ${bgPalette} border-2 shadow-wood-emboss p-2.5 flex flex-col justify-between relative overflow-hidden transition-all duration-300">
+            <div class="absolute left-1 top-3 w-1.5 h-4 rounded-sm bg-gradient-to-r from-brass-dark via-brass to-brass-light shadow-sm"></div>
+            <div class="absolute left-1 bottom-3 w-1.5 h-4 rounded-sm bg-gradient-to-r from-brass-dark via-brass to-brass-light shadow-sm"></div>
+
+            <div class="flex items-center justify-between pl-2">
+              <span class="font-serif font-bold text-sm sm:text-base text-wood-950">Semaine ${w.week}</span>
+              <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded ${trimBadgeClass} shadow-sm">${trimBadge}</span>
+            </div>
+
+            <div class="text-center my-auto py-1">
+              <div class="text-3xl sm:text-4xl transform hover:scale-110 transition duration-200">${w.fruitIcon}</div>
+              <div class="text-[11px] font-bold text-wood-900 mt-1 line-clamp-1">${w.fruit}</div>
+              <div class="text-[9px] text-wood-700">${w.length}</div>
+            </div>
+
+            <div class="border-t border-wood-300/50 pt-1.5 flex items-center justify-between text-[9px] text-wood-800">
+              <span class="truncate max-w-[80px] sm:max-w-[95px]">${dateRangeStr.split('—')[0]}</span>
+              <span class="font-semibold text-wood-700 flex items-center gap-0.5">
+                <i data-lucide="eye" class="w-2.5 h-2.5"></i> Ouvrir
+              </span>
+            </div>
+
+            ${w.clinical.includes('RMA') ? `
+              <div class="absolute top-1 right-7 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Protocole RMA clé"></div>
+            ` : ''}
+          </div>
+        `;
+
+        card.addEventListener('click', () => openWeekModal(w.week));
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    }
+
+    /**
+     * Modal Week Details & French Video Timestamps
+     */
+    function openWeekModal(weekNum) {
+      STATE.selectedWeek = weekNum;
+      STATE.openWindows[weekNum] = true;
+      saveState();
+
+      const cardEl = document.getElementById(`window-card-${weekNum}`);
+      if (cardEl) cardEl.classList.add('ring-2', 'ring-amber-600');
+
+      const data = WEEKS_DATA.find(d => d.week === weekNum) || WEEKS_DATA[11];
+      const dateRange = getWeekDateRange(weekNum);
+
+      document.getElementById('modal-fruit-badge').textContent = data.fruitIcon;
+      document.getElementById('modal-title').textContent = `Semaine ${data.week} : ${data.titleFr}`;
+      document.getElementById('modal-size-text').textContent = `Taille bébé : ${data.fruit} (${data.fruitEn}) • ~${data.length} • ${data.weight}`;
+      document.getElementById('modal-date-range').textContent = dateRange;
+
+      const trimTag = document.getElementById('modal-trimester-tag');
+      trimTag.textContent = data.week >= 27 ? "3e Trimestre" : data.week >= 13 ? "2e Trimestre" : "1er Trimestre";
+
+      const clinicalBox = document.getElementById('modal-clinical-box');
+      if (data.clinical) {
+        clinicalBox.classList.remove('hidden');
+        document.getElementById('modal-clinical-desc').textContent = data.clinical;
+      } else {
+        clinicalBox.classList.add('hidden');
+      }
+
+      document.getElementById('modal-fetal-summary').textContent = data.fetalSummaryFr;
+      document.getElementById('modal-mom-summary').textContent = data.momSummaryFr;
+      document.getElementById('modal-length').textContent = data.length;
+      document.getElementById('modal-weight').textContent = data.weight;
+
+      // Video sync
+      const videoFrame = document.getElementById('modal-video-frame');
+      const baseVideoId = "jXsFHhSwrvU";
+      let startSecond = 0;
+      if (data.week <= 4) startSecond = 10;
+      else if (data.week <= 8) startSecond = 42;
+      else if (data.week <= 12) startSecond = 75;
+      else if (data.week <= 16) startSecond = 110;
+      else if (data.week <= 20) startSecond = 145;
+      else if (data.week <= 24) startSecond = 175;
+      else if (data.week <= 28) startSecond = 205;
+      else if (data.week <= 34) startSecond = 230;
+      else startSecond = 250;
+
+      videoFrame.src = `https://www.youtube-nocookie.com/embed/${baseVideoId}?start=${startSecond}&rel=0&autoplay=0`;
+      document.getElementById('modal-video-timestamp-note').textContent = `Vidéo 3D calée sur la Semaine ${data.week} (~${Math.floor(startSecond/60)}m${(startSecond%60).toString().padStart(2, '0')}s).`;
+
+      // Checklists
+      const chkContainer = document.getElementById('modal-checklist-container');
+      chkContainer.innerHTML = '';
+      data.checklist.forEach((item, idx) => {
+        const itemKey = `week-${weekNum}-step-${idx}`;
+        const isChecked = !!STATE.completedChecklist[itemKey];
+
+        const row = document.createElement('label');
+        row.className = "flex items-center gap-2.5 p-2 rounded-xl bg-white/80 border border-wood-200 cursor-pointer text-xs text-wood-900 hover:bg-amber-50/50 transition";
+        row.innerHTML = `
+          <input type="checkbox" ${isChecked ? 'checked' : ''} class="w-4 h-4 rounded text-amber-600 focus:ring-0">
+          <span class="${isChecked ? 'line-through text-wood-400' : ''}">${item}</span>
+        `;
+
+        const chkInput = row.querySelector('input');
+        chkInput.addEventListener('change', (e) => {
+          STATE.completedChecklist[itemKey] = e.target.checked;
+          const textSpan = row.querySelector('span');
+          if (e.target.checked) {
+            textSpan.classList.add('line-through', 'text-wood-400');
+            confetti({ particleCount: 25, spread: 45, origin: { y: 0.7 } });
+          } else {
+            textSpan.classList.remove('line-through', 'text-wood-400');
+          }
+          saveState();
+        });
+        chkContainer.appendChild(row);
+      });
+
+      const modal = document.getElementById('window-modal');
+      modal.classList.remove('pointer-events-none', 'opacity-0');
+      modal.querySelector('.transform').classList.remove('scale-95');
+      modal.querySelector('.transform').classList.add('scale-100');
+
+      document.getElementById('sync-week-num').textContent = weekNum;
+      document.getElementById('select-week-jump').value = weekNum;
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('window-modal');
+      modal.classList.add('pointer-events-none', 'opacity-0');
+      modal.querySelector('.transform').classList.add('scale-95');
+      modal.querySelector('.transform').classList.remove('scale-100');
+
+      const videoFrame = document.getElementById('modal-video-frame');
+      if (videoFrame) videoFrame.src = "";
+    }
+
+    /**
+     * Heartbeat Web Audio Synthesizer
+     */
+    let audioCtx = null;
+    let heartbeatInterval = null;
+
+    function toggleHeartbeatAudio() {
+      if (STATE.audioPlaying) {
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        STATE.audioPlaying = false;
+        document.getElementById('heartbeat-text').textContent = "Écouter Cœur";
+        return;
+      }
+
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = audioCtx || new AudioContext();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      STATE.audioPlaying = true;
+      document.getElementById('heartbeat-text').textContent = "Cœur Fœtal (145 BPM)";
+      playLubDub(audioCtx);
+      heartbeatInterval = setInterval(() => playLubDub(audioCtx), 413);
+    }
+
+    function playLubDub(ctx) {
+      if (!ctx || ctx.state === 'suspended') return;
+      playTone(ctx, 80, 0.12, 0.3);
+      setTimeout(() => playTone(ctx, 110, 0.09, 0.25), 130);
+    }
+
+    function playTone(ctx, freq, duration, gainValue) {
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + duration);
+        gain.gain.setValueAtTime(gainValue, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (err) {}
+    }
+
+    /**
+     * RMA Clinical Milestones Renderer
+     */
+    function renderRMATimeline() {
+      const p3Container = document.getElementById('phase3-items-container');
+      const p4Container = document.getElementById('phase4-items-container');
+      if (!p3Container || !p4Container) return;
+
+      const p3Milestones = [
+        { title: "Transfert d'Embryon Congelé (FET)", date: "Début Novembre 2026 (03 Nov.)", badge: "J0", desc: "Transfert par le Dr. Anate Brauer du blastocyste J5 euploïde masculin sélectionné." },
+        { title: "Dosages Bêta-hCG Sériés", date: "08–12 Nov. 2026 (J9–J14 post-FET)", badge: "Prioritaire", desc: "Prises de sang sériées pour valider l'implantation et surveiller la cinétique de doublement." },
+        { title: "Échographies de Viabilité & Cœur", date: "Semaines 5 à 8 (Déc. 2026)", badge: "Échos RMA", desc: "Contrôles hebdomadaires : sac gestationnel, vésicule vitelline et rythme cardiaque fœtal." },
+        { title: "Graduation RMA of New York", date: "Semaines 8 à 10 (Fin Déc. 2026 - Jan. 2027)", badge: "Graduation 🎓", desc: "Remise officielle du dossier médical complet vers l'obstétricien traitant." }
+      ];
+
+      const p4Milestones = [
+        { title: "Dépistage 1er Trimestre (DPNI & Clarté Nucale)", date: "Semaines 11 à 13 (Janv. 2027)", badge: "Prénatal", desc: "Prélèvement sanguin DPNI (NIPT) et échographie mesurant la clarté nucale." },
+        { title: "Première Consultation Obstétrique Complète", date: "Semaine 12 (Fin Janv. 2027)", badge: "OB/GYN", desc: "Prise en charge par le gynécologue-obstétricien et bilan général." },
+        { title: "Échographie Morphologique Niveau II", date: "Semaine 22 (Mars / Avr. 2027)", badge: "Morphologie", desc: "Examen méticuleux de toute l'anatomie fœtale (cœur 4 cavités, cerveau, reins, membres)." },
+        { title: "Dépistage du Diabète Gestationnel (HGPO)", date: "Semaines 24 à 28 (Mai 2027)", badge: "Biologie", desc: "Test de provocation au glucose 75g." },
+        { title: "Écho de Croissance & Placenta (T3)", date: "Semaine 32 (Juin 2027)", badge: "3e Trimestre", desc: "Évaluation de la biométrie fœtale, du liquide amniotique et de l'insertion placentaire." },
+        { title: "Dépistage Streptocoque B (SGB)", date: "Semaines 35 à 37 (Juil. 2027)", badge: "Prévention", desc: "Prélèvement bactériologique systématique et révision finale du projet de naissance." },
+        { title: "Accouchement & Arrivée de Bébé Garçon", date: "Semaines 37 à 41 (Fin Juil. - Août 2027)", badge: "Naissance 👶", desc: "Travail, accouchement serein et accueil de bébé dans les bras de Fatou !" }
+      ];
+
+      p3Container.innerHTML = p3Milestones.map(m => `
+        <div class="relative pl-7 text-xs">
+          <div class="absolute left-1.5 top-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs"></div>
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-emerald-950">${m.title}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">${m.badge}</span>
+          </div>
+          <div class="text-[11px] font-medium text-emerald-700">${m.date}</div>
+          <p class="text-stone-600 mt-0.5">${m.desc}</p>
+        </div>
+      `).join('');
+
+      p4Container.innerHTML = p4Milestones.map(m => `
+        <div class="relative pl-7 text-xs">
+          <div class="absolute left-1.5 top-1.5 w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-white shadow-xs"></div>
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-amber-950">${m.title}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">${m.badge}</span>
+          </div>
+          <div class="text-[11px] font-medium text-amber-700">${m.date}</div>
+          <p class="text-stone-600 mt-0.5">${m.desc}</p>
+        </div>
+      `).join('');
+    }
+
+    /**
+     * Kick Counter Session Engine
+     */
+    let kickSessionRunning = false;
+    let kickSessionStartTime = null;
+    let kickSessionTimerInterval = null;
+    let currentKickCount = 0;
+
+    function initKickSession() {
+      const btnStart = document.getElementById('btn-start-kick-session');
+      const btnPlus = document.getElementById('btn-kick-plus');
+      const btnMinus = document.getElementById('btn-kick-minus');
+      const display = document.getElementById('kick-count-display');
+      const timerDisplay = document.getElementById('kick-session-timer');
+
+      btnStart.addEventListener('click', () => {
+        if (!kickSessionRunning) {
+          kickSessionRunning = true;
+          kickSessionStartTime = Date.now();
+          currentKickCount = 0;
+          display.textContent = `0 / 10`;
+          btnStart.innerHTML = `<i data-lucide="square" class="w-3 h-3"></i> Arrêter`;
+          lucide.createIcons();
+
+          kickSessionTimerInterval = setInterval(() => {
+            const diffSec = Math.floor((Date.now() - kickSessionStartTime) / 1000);
+            const m = Math.floor(diffSec / 60).toString().padStart(2, '0');
+            const s = (diffSec % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${m}:${s}`;
+          }, 500);
+        } else {
+          stopKickSession();
+        }
+      });
+
+      btnPlus.addEventListener('click', () => {
+        currentKickCount++;
+        display.textContent = `${currentKickCount} / 10`;
+        if (currentKickCount >= 10 && kickSessionRunning) {
+          confetti({ particleCount: 40, spread: 60, origin: { y: 0.6 } });
+          stopKickSession(true);
+        }
+      });
+
+      btnMinus.addEventListener('click', () => {
+        currentKickCount = Math.max(0, currentKickCount - 1);
+        display.textContent = `${currentKickCount} / 10`;
+      });
+    }
+
+    function stopKickSession(completed = false) {
+      kickSessionRunning = false;
+      clearInterval(kickSessionTimerInterval);
+      const btnStart = document.getElementById('btn-start-kick-session');
+      btnStart.innerHTML = `<i data-lucide="play" class="w-3 h-3"></i> Démarrer Séance`;
+      lucide.createIcons();
+
+      if (completed) {
+        const diffSec = Math.floor((Date.now() - kickSessionStartTime) / 1000);
+        const m = Math.floor(diffSec / 60);
+        const s = diffSec % 60;
+        alert(`Félicitations Fatou ! 10 mouvements enregistrés en ${m}m ${s}s.`);
+      }
+    }
+
+    /**
+     * Journal & Symptom Logger
+     */
+    let selectedMood = "sereine";
+
+    function initJournal() {
+      const dateInput = document.getElementById('journal-date');
+      dateInput.value = new Date().toISOString().split('T')[0];
+
+      const metrics = computeMetrics();
+      document.getElementById('journal-week').value = `Semaine ${Math.max(1, Math.min(40, metrics.currentGAWeeks))}`;
+
+      document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.mood-btn').forEach(b => {
+            b.classList.remove('ring-2', 'ring-amber-500', 'bg-amber-100');
+            b.classList.add('bg-white');
+          });
+          btn.classList.add('ring-2', 'ring-amber-500', 'bg-amber-100');
+          btn.classList.remove('bg-white');
+          selectedMood = btn.dataset.mood;
+        });
+      });
+
+      renderWaterTracker();
+
+      document.querySelectorAll('.btn-journal-prompt').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const area = document.getElementById('journal-text');
+          area.value = btn.dataset.prompt;
+          area.focus();
+        });
+      });
+
+      document.getElementById('journal-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = document.getElementById('journal-text').value.trim();
+        const checked = Array.from(document.querySelectorAll('input[name="symptom"]:checked')).map(c => c.value);
+
+        if (!text && checked.length === 0 && currentKickCount === 0) return;
+
+        const entry = {
+          id: Date.now(),
+          date: document.getElementById('journal-date').value,
+          week: document.getElementById('journal-week').value,
+          mood: selectedMood,
+          symptoms: checked,
+          water: STATE.waterGlasses || 4,
+          kicks: currentKickCount,
+          text: text
+        };
+
+        STATE.journalEntries.unshift(entry);
+        saveState();
+        renderJournalList();
+
+        document.getElementById('journal-text').value = '';
+        document.querySelectorAll('input[name="symptom"]:checked').forEach(c => c.checked = false);
+        confetti({ particleCount: 20, spread: 50, origin: { y: 0.7 } });
+      });
+
+      renderJournalList();
+    }
+
+    function renderWaterTracker() {
+      const countText = document.getElementById('water-glasses-count');
+      const row = document.getElementById('water-glasses-row');
+      const count = STATE.waterGlasses || 4;
+      countText.textContent = `${count} / 8 verres (${(count * 0.25).toFixed(1)} L)`;
+
+      row.innerHTML = '';
+      for (let i = 1; i <= 8; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `w-7 h-8 rounded-lg border text-[10px] flex items-center justify-center font-bold transition ${i <= count ? 'bg-sky-200 border-sky-400 text-sky-800' : 'bg-white border-wood-200 text-stone-300'}`;
+        btn.textContent = '💧';
+        btn.addEventListener('click', () => {
+          STATE.waterGlasses = i;
+          saveState();
+          renderWaterTracker();
+        });
+        row.appendChild(btn);
+      }
+    }
+
+    function renderJournalList() {
+      const container = document.getElementById('journal-entries-list');
+      if (STATE.journalEntries.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-xs text-stone-500">Aucune note pour le moment. Racontez votre parcours !</div>`;
+        return;
+      }
+
+      container.innerHTML = STATE.journalEntries.map(e => `
+        <div class="p-3.5 rounded-2xl bg-white border border-wood-200 shadow-xs space-y-1.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-wood-900">${e.week} • ${e.date}</span>
+            <span class="text-base">${getMoodEmoji(e.mood)}</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-stone-600">
+            ${e.water ? `<span class="px-2 py-0.5 rounded-md bg-sky-50 text-sky-800 border border-sky-200">💧 ${e.water} verres</span>` : ''}
+            ${e.kicks > 0 ? `<span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-semibold">👣 ${e.kicks} coups</span>` : ''}
+          </div>
+          ${e.symptoms && e.symptoms.length > 0 ? `
+            <div class="flex flex-wrap gap-1">${e.symptoms.map(s => `<span class="px-2 py-0.5 rounded-md bg-wood-100 text-wood-800 text-[10px]">${s}</span>`).join('')}</div>
+          ` : ''}
+          ${e.text ? `<p class="text-stone-700 whitespace-pre-line text-xs italic bg-amber-50/40 p-2 rounded-xl">"${e.text}"</p>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function getMoodEmoji(mood) {
+      const map = { sereine: '🌸', radieuse: '✨', fatiguee: '😴', nausee: '🤢', émotive: '🥹' };
+      return map[mood] || '❤️';
+    }
+
+    /**
+     * Photo Gallery Vault
+     */
+    function initPhotoGallery() {
+      const fileInput = document.getElementById('input-upload-photo');
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          STATE.photos.push({
+            id: Date.now(),
+            dataUrl: evt.target.result,
+            caption: `Écho / Cliché — Semaine ${computeMetrics().currentGAWeeks}`
+          });
+          saveState();
+          renderPhotos();
+        };
+        reader.readAsDataURL(file);
+      });
+      renderPhotos();
+    }
+
+    function renderPhotos() {
+      const container = document.getElementById('photo-gallery-container');
+      if (STATE.photos.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-stone-400 text-xs col-span-full">Aucun cliché téléversé. Ajoutez vos échographies ici !</div>`;
+        return;
+      }
+
+      container.innerHTML = STATE.photos.map(p => `
+        <div class="rounded-xl overflow-hidden border border-wood-300 bg-white shadow-xs group relative">
+          <img src="${p.dataUrl}" alt="Échographie" class="w-full h-24 object-cover">
+          <div class="p-1.5 text-[10px] text-wood-800 truncate">${p.caption}</div>
+        </div>
+      `).join('');
+    }
+
+    /**
+     * IVF Medications & Weight Tracker
+     */
+    const IVF_MEDS_LIST = [
+      { id: "pio-inj", name: "Progestérone en Huile (PIO)", dose: "50 mg intramusculaire / jour", time: "Chaque matin à 9h00" },
+      { id: "estrace", name: "Estrace (Œstradiol)", dose: "2 mg par voie orale / 2x par jour", time: "Matin et soir" },
+      { id: "prenatal", name: "Vitamines Prénatales avec Méthylfolate", dose: "1 gélule / jour", time: "Au déjeuner" },
+      { id: "aspirin-baby", name: "Bébé Aspirine (Baby Aspirin)", dose: "81 mg / jour", time: "Au dîner" }
+    ];
+
+    function initMedicationsTracker() {
+      const container = document.getElementById('medications-checklist-container');
+      container.innerHTML = IVF_MEDS_LIST.map(med => {
+        const isChecked = !!STATE.medications[med.id];
+        return `
+          <label class="flex items-start justify-between p-2.5 rounded-xl bg-white border border-purple-200 cursor-pointer hover:bg-purple-50/50 transition">
+            <div class="flex items-start gap-2.5">
+              <input type="checkbox" data-med-id="${med.id}" ${isChecked ? 'checked' : ''} class="w-4 h-4 rounded text-purple-600 mt-0.5">
+              <div>
+                <strong class="font-bold text-stone-900 text-xs">${med.name}</strong>
+                <div class="text-[11px] text-purple-800 font-medium">${med.dose}</div>
+              </div>
+            </div>
+            <span class="text-[10px] text-stone-500 font-semibold px-2 py-0.5 rounded bg-purple-50 border border-purple-200">${med.time}</span>
+          </label>
+        `;
+      }).join('');
+
+      container.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', (e) => {
+          STATE.medications[e.target.dataset.medId] = e.target.checked;
+          saveState();
+        });
+      });
+
+      // Weight tracker
+      document.getElementById('weight-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const wk = parseInt(document.getElementById('input-weight-week').value);
+        const wt = parseFloat(document.getElementById('input-weight-val').value);
+        if (isNaN(wk) || isNaN(wt)) return;
+        STATE.weightRecords.push({ week: wk, weight: wt });
+        STATE.weightRecords.sort((a,b) => a.week - b.week);
+        saveState();
+        renderWeightRecords();
+        document.getElementById('input-weight-val').value = '';
+      });
+      renderWeightRecords();
+    }
+
+    function renderWeightRecords() {
+      const list = document.getElementById('weight-records-list');
+      if (STATE.weightRecords.length === 0) {
+        list.innerHTML = `<div class="text-stone-400 py-2">Aucun enregistrement de poids.</div>`;
+        return;
+      }
+
+      list.innerHTML = STATE.weightRecords.map(r => `
+        <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-wood-200">
+          <span class="font-bold text-wood-900">Semaine ${r.week}</span>
+          <span class="font-bold text-amber-800">${r.weight} kg</span>
+        </div>
+      `).join('');
+    }
+
+    /**
+     * Hospital Bag & Contraction Timer
+     */
+    const DEFAULT_BAG_ITEMS = {
+      baby: [
+        "5 bodys en coton (taille naissance & 1 mois)",
+        "5 pyjamas velours avec ouverture facile",
+        "2 bonnets doux pour nourrisson",
+        "3 paires de chaussettes",
+        "Gigoteuse naissance TOG 2",
+        "Siège auto homologué fixé dans la voiture"
+      ],
+      mom: [
+        "Chemises de nuit d'allaitement",
+        "Soutiens-gorge d'allaitement sans armature",
+        "Coussin de maternité",
+        "Brumisateur d'eau thermale",
+        "Baume à lèvres et crème Lanoline",
+        "Culottes confortables en coton"
+      ],
+      docs: [
+        "Dossier médical complet RMA of New York & bilans",
+        "Carte de groupe sanguin et sérologies",
+        "Projet de naissance imprimé",
+        "Pièces d'identité et livret de famille",
+        "Chargeur de téléphone long câble"
+      ]
+    };
+
+    function initHospitalBag() {
+      renderBagSection(document.getElementById('bag-baby-items'), DEFAULT_BAG_ITEMS.baby, 'baby');
+      renderBagSection(document.getElementById('bag-mom-items'), DEFAULT_BAG_ITEMS.mom, 'mom');
+      renderBagSection(document.getElementById('bag-docs-items'), DEFAULT_BAG_ITEMS.docs, 'docs');
+      updateBagProgress();
+
+      document.getElementById('btn-add-bag-item').addEventListener('click', () => {
+        const input = document.getElementById('input-new-bag-item');
+        const val = input.value.trim();
+        if (!val) return;
+        STATE.customBagItems.push(val);
+        saveState();
+        input.value = '';
+        initHospitalBag();
+      });
+    }
+
+    function renderBagSection(container, defaultItems, sectionKey) {
+      if (!container) return;
+      container.innerHTML = '';
+      const items = [...defaultItems];
+      if (sectionKey === 'baby' && STATE.customBagItems) items.push(...STATE.customBagItems);
+
+      items.forEach(itemText => {
+        const itemKey = `bag-${itemText}`;
+        const isChecked = !!STATE.hospitalBag[itemKey];
+        const row = document.createElement('label');
+        row.className = "flex items-start gap-2 p-1 rounded-lg hover:bg-white/70 cursor-pointer transition";
+        row.innerHTML = `
+          <input type="checkbox" ${isChecked ? 'checked' : ''} class="w-3.5 h-3.5 rounded text-amber-600 mt-0.5">
+          <span class="${isChecked ? 'line-through text-stone-400' : 'text-stone-800'}">${itemText}</span>
+        `;
+        row.querySelector('input').addEventListener('change', (e) => {
+          STATE.hospitalBag[itemKey] = e.target.checked;
+          const label = row.querySelector('span');
+          if (e.target.checked) label.classList.add('line-through', 'text-stone-400');
+          else label.classList.remove('line-through', 'text-stone-400');
+          saveState();
+          updateBagProgress();
+        });
+        container.appendChild(row);
+      });
+    }
+
+    function updateBagProgress() {
+      const all = document.querySelectorAll('#hospital-bag-categories input[type="checkbox"]');
+      const checked = document.querySelectorAll('#hospital-bag-categories input[type="checkbox"]:checked');
+      document.getElementById('bag-progress-text').textContent = `${checked.length} / ${all.length} prêts`;
+      if (all.length > 0) {
+        document.getElementById('bag-progress-bar').style.width = `${Math.round((checked.length / all.length) * 100)}%`;
+      }
+    }
+
+    /**
+     * Birth Plan Preferences
+     */
+    const BIRTH_PLAN_PREFERENCES = [
+      { id: "skinToSkin", label: "Peau à peau immédiat sans interruption" },
+      { id: "delayedCord", label: "Clampage tardif du cordon ombilical" },
+      { id: "dimLights", label: "Lumière tamisée & ambiance calme en salle" },
+      { id: "music", label: "Diffusion d'une playlist musicale relaxante" },
+      { id: "partnerCutCord", label: "Le papa / partenaire coupe le cordon" },
+      { id: "delayedBath", label: "Premier bain retardé de 24h (laisser vernix)" }
+    ];
+
+    function initBirthPlan() {
+      const container = document.getElementById('birth-plan-container');
+      container.innerHTML = BIRTH_PLAN_PREFERENCES.map(p => {
+        const isChecked = !!STATE.birthPlan[p.id];
+        return `
+          <label class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-wood-200 cursor-pointer hover:bg-amber-50/50 transition">
+            <input type="checkbox" data-plan-id="${p.id}" ${isChecked ? 'checked' : ''} class="w-4 h-4 rounded text-rose-600">
+            <span class="text-xs text-stone-800">${p.label}</span>
+          </label>
+        `;
+      }).join('');
+
+      container.querySelectorAll('input').forEach(input => {
+        input.addEventListener('change', (e) => {
+          STATE.birthPlan[e.target.dataset.planId] = e.target.checked;
+          saveState();
+        });
+      });
+
+      document.getElementById('btn-print-birth-plan').addEventListener('click', () => window.print());
+    }
+
+    /**
+     * Contraction Stopwatch
+     */
+    let timerRunning = false;
+    let timerStartTime = null;
+    let timerInterval = null;
+
+    function initContractionTimer() {
+      const btn = document.getElementById('btn-toggle-contraction');
+      btn.addEventListener('click', () => {
+        if (!timerRunning) {
+          timerRunning = true;
+          timerStartTime = Date.now();
+          document.getElementById('contraction-btn-text').textContent = "Arrêter Contraction";
+          document.getElementById('timer-status-text').textContent = "Contraction en cours...";
+          btn.classList.replace('bg-rose-600', 'bg-stone-800');
+
+          timerInterval = setInterval(() => {
+            const diff = Math.floor((Date.now() - timerStartTime) / 1000);
+            const m = Math.floor(diff / 60).toString().padStart(2, '0');
+            const s = (diff % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').textContent = `${m}:${s}`;
+          }, 500);
+        } else {
+          timerRunning = false;
+          clearInterval(timerInterval);
+          const dur = Math.max(1, Math.floor((Date.now() - timerStartTime) / 1000));
+          const prev = STATE.contractionsHistory[0];
+          let intervalMin = "--";
+          if (prev) intervalMin = Math.round((timerStartTime - prev.timestamp) / (60000)) + " min";
+
+          STATE.contractionsHistory.unshift({
+            timestamp: timerStartTime,
+            timeFormatted: new Date(timerStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            durationSec: dur,
+            intervalMin: intervalMin
+          });
+          saveState();
+          renderContractionsLog();
+
+          document.getElementById('timer-display').textContent = "00:00";
+          document.getElementById('contraction-btn-text').textContent = "Démarrer Contraction";
+          document.getElementById('timer-status-text').textContent = "Contraction enregistrée";
+          btn.classList.replace('bg-stone-800', 'bg-rose-600');
+        }
+      });
+
+      document.getElementById('btn-reset-contractions').addEventListener('click', () => {
+        STATE.contractionsHistory = [];
+        saveState();
+        renderContractionsLog();
+      });
+
+      renderContractionsLog();
+    }
+
+    function renderContractionsLog() {
+      const container = document.getElementById('contractions-list');
+      const countEl = document.getElementById('contractions-count');
+      const hist = STATE.contractionsHistory;
+      countEl.textContent = `${hist.length} enregistrée(s)`;
+
+      if (hist.length === 0) {
+        container.innerHTML = `<p class="text-stone-400 text-center py-3 text-[11px]">Aucune contraction enregistrée.</p>`;
+        return;
+      }
+
+      container.innerHTML = hist.slice(0, 8).map((c, i) => `
+        <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-wood-200">
+          <div class="flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold flex items-center justify-center">${hist.length - i}</span>
+            <span class="font-bold text-wood-900">${c.timeFormatted}</span>
+          </div>
+          <div>
+            <span class="font-bold text-rose-700">${c.durationSec}s</span>
+            <span class="text-[10px] text-wood-500 ml-1.5">(espacées de ${c.intervalMin})</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /**
+     * Procedural 3D Womb (Three.js)
+     */
+    let scene, camera, renderer, controls, wombMesh, fetusGroup;
+    let isWombSemiTransparent = true;
+
+    function initThreeJS() {
+      const container = document.getElementById('womb-canvas-container');
+      const width = container.clientWidth || 600;
+      const height = container.clientHeight || 520;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0e0a08);
+      scene.fog = new THREE.FogExp2(0x0e0a08, 0.08);
+
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 50);
+      camera.position.set(0, 0.5, 5.5);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      if (typeof THREE.OrbitControls !== 'undefined') {
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+      }
+
+      scene.add(new THREE.AmbientLight(0xffeedd, 0.8));
+      const mainLight = new THREE.DirectionalLight(0xffb592, 1.8);
+      mainLight.position.set(4, 5, 4);
+      scene.add(mainLight);
+
+      const rimLight = new THREE.PointLight(0xf59e0b, 2.2, 15);
+      rimLight.position.set(-3, -2, -2);
+      scene.add(rimLight);
+
+      // Womb
+      const wombGeo = new THREE.SphereGeometry(2.1, 48, 36);
+      wombGeo.scale(1, 1.25, 0.95);
+      const wombMat = new THREE.MeshPhysicalMaterial({
+        color: 0x99222a,
+        emissive: 0x33080c,
+        roughness: 0.25,
+        transmission: 0.6,
+        opacity: 0.45,
+        transparent: true,
+        side: THREE.DoubleSide
+      });
+      wombMesh = new THREE.Mesh(wombGeo, wombMat);
+      scene.add(wombMesh);
+
+      fetusGroup = new THREE.Group();
+      scene.add(fetusGroup);
+
+      buildFetusMesh(12);
+      window.addEventListener('resize', onWindowResize);
+      animateThree();
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('womb-canvas-container');
+      if (!container || !renderer || !camera) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w === 0 || h === 0) return;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+      if (controls) controls.update();
+      if (fetusGroup) fetusGroup.rotation.y += 0.003;
+      if (renderer && scene && camera) renderer.render(scene, camera);
+    }
+
+    function buildFetusMesh(weekNum) {
+      if (!fetusGroup) return;
+      while (fetusGroup.children.length > 0) {
+        const c = fetusGroup.children[0];
+        if (c.geometry) c.geometry.dispose();
+        if (c.material) {
+          if (Array.isArray(c.material)) c.material.forEach(m => m.dispose());
+          else c.material.dispose();
+        }
+        fetusGroup.remove(c);
+      }
+
+      const mat = new THREE.MeshStandardMaterial({ color: 0xf5b597, roughness: 0.4 });
+      const scale = Math.min(1.6, 0.2 + (weekNum / 40) * 1.3);
+
+      if (weekNum <= 4) {
+        fetusGroup.add(new THREE.Mesh(new THREE.DodecahedronGeometry(0.25 * scale, 1), mat));
+      } else {
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.48 * scale, 32, 24), mat);
+        head.position.set(0, 0.45 * scale, 0);
+        fetusGroup.add(head);
+
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35 * scale, 0.2 * scale, 0.7 * scale, 24), mat);
+        body.position.set(0, -0.1 * scale, 0);
+        body.rotation.z = 0.2;
+        fetusGroup.add(body);
+
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * scale, 0.12 * scale, 0.4 * scale, 16), mat);
+        leg.position.set(0.2 * scale, -0.45 * scale, 0.1 * scale);
+        leg.rotation.z = Math.PI / 3;
+        fetusGroup.add(leg);
+
+        const cordCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, -0.1 * scale, 0.2 * scale),
+          new THREE.Vector3(0.5, -0.3, 0.6),
+          new THREE.Vector3(1.2, -0.6, 1.2)
+        ]);
+        fetusGroup.add(new THREE.Mesh(new THREE.TubeGeometry(cordCurve, 20, 0.05, 8, false), new THREE.MeshStandardMaterial({ color: 0x5ea396, roughness: 0.3 })));
+      }
+    }
+
+    function update3DWeek(weekNum) {
+      buildFetusMesh(weekNum);
+      const data = WEEKS_DATA.find(d => d.week === weekNum) || WEEKS_DATA[11];
+
+      document.getElementById('three-week-title').textContent = `Semaine ${weekNum} • ${data.titleFr}`;
+      document.getElementById('three-week-sub').textContent = `Taille : ${data.fruit} (${data.length} • ${data.weight})`;
+      document.getElementById('three-week-slider').value = weekNum;
+      document.getElementById('slider-week-display').textContent = `Semaine ${weekNum}`;
+
+      document.getElementById('detail-card-title').textContent = `Semaine ${weekNum} : ${data.titleFr}`;
+      document.getElementById('detail-card-fruit').innerHTML = `Taille comparable : <strong>${data.fruit}</strong> ~ ${data.length} • ${data.weight}`;
+      document.getElementById('detail-card-fhr').textContent = data.fhr || "~140-160 BPM";
+      document.getElementById('detail-card-trimester').textContent = weekNum >= 27 ? "3e Trimestre" : weekNum >= 13 ? "2e Trimestre" : "1er Trimestre";
+      document.getElementById('detail-card-mom-notes').textContent = data.momSummaryFr;
+      document.getElementById('sync-week-num').textContent = weekNum;
+      document.getElementById('detail-card-highlights').innerHTML = `<li>${data.fetalSummaryFr}</li><li>${data.clinical}</li>`;
+    }
+
+    /**
+     * Tabs & Global Listeners
+     */
+    function initTabs() {
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.nav-tab').forEach(t => {
+            t.classList.remove('active', 'bg-wood-800', 'text-amber-50', 'shadow-inner');
+            t.classList.add('text-wood-800');
+          });
+          tab.classList.add('active', 'bg-wood-800', 'text-amber-50', 'shadow-inner');
+          tab.classList.remove('text-wood-800');
+
+          const targetId = tab.dataset.target;
+          document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+          document.getElementById(targetId).classList.remove('hidden');
+
+          if (targetId === 'tab-3d') setTimeout(onWindowResize, 50);
+        });
+      });
+    }
+
+    function setupEventListeners() {
+      document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+      document.getElementById('modal-btn-close-bottom').addEventListener('click', closeModal);
+      document.getElementById('window-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'window-modal') closeModal();
+      });
+
+      document.getElementById('modal-btn-mute-video').addEventListener('click', () => {
+        document.getElementById('modal-video-frame').src = "";
+      });
+
+      document.getElementById('select-week-jump').addEventListener('change', (e) => {
+        const w = parseInt(e.target.value);
+        if (!isNaN(w)) openWeekModal(w);
+      });
+
+      document.getElementById('btn-jump-current').addEventListener('click', () => {
+        const cur = Math.max(1, Math.min(40, computeMetrics().currentGAWeeks));
+        openWeekModal(cur);
+      });
+
+      document.getElementById('three-week-slider').addEventListener('input', (e) => {
+        const w = parseInt(e.target.value);
+        if (!isNaN(w)) update3DWeek(w);
+      });
+
+      document.getElementById('modal-btn-view3d').addEventListener('click', () => {
+        closeModal();
+        document.querySelector('[data-target="tab-3d"]').click();
+        update3DWeek(STATE.selectedWeek);
+      });
+
+      document.getElementById('btn-sync-to-board').addEventListener('click', () => {
+        const w = parseInt(document.getElementById('three-week-slider').value);
+        document.querySelector('[data-target="tab-windows"]').click();
+        openWeekModal(w);
+      });
+
+      document.getElementById('btn-toggle-womb-transparency').addEventListener('click', () => {
+        isWombSemiTransparent = !isWombSemiTransparent;
+        wombMesh.material.opacity = isWombSemiTransparent ? 0.45 : 0.88;
+        document.getElementById('label-womb-transp').textContent = isWombSemiTransparent ? "Utérus Semi-Transparent" : "Utérus Opaque";
+      });
+
+      document.getElementById('btn-reset-cam').addEventListener('click', () => {
+        if (controls && camera) {
+          controls.reset();
+          camera.position.set(0, 0.5, 5.5);
+        }
+      });
+
+      document.getElementById('btn-toggle-heartbeat').addEventListener('click', toggleHeartbeatAudio);
+
+      // Settings Modal
+      const settingsModal = document.getElementById('settings-modal');
+      document.getElementById('btn-open-settings').addEventListener('click', () => {
+        document.getElementById('setting-patient-name').value = STATE.patientName;
+        document.getElementById('setting-fet-date').value = STATE.fetDateString;
+        document.getElementById('setting-embryo-age').value = STATE.embryoAgeDays;
+        settingsModal.classList.remove('pointer-events-none', 'opacity-0');
+      });
+
+      const closeSettings = () => settingsModal.classList.add('pointer-events-none', 'opacity-0');
+      document.getElementById('btn-close-settings').addEventListener('click', closeSettings);
+      document.getElementById('btn-cancel-settings').addEventListener('click', closeSettings);
+
+      document.getElementById('settings-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        STATE.patientName = document.getElementById('setting-patient-name').value || "Fatou";
+        STATE.fetDateString = document.getElementById('setting-fet-date').value || "2026-11-03";
+        STATE.embryoAgeDays = parseInt(document.getElementById('setting-embryo-age').value) || 5;
+        saveState();
+        updateHeaderUI();
+        renderWindowsGrid();
+        renderRMATimeline();
+        closeSettings();
+        confetti({ particleCount: 30, spread: 60, origin: { y: 0.5 } });
+      });
+
+      // Export & Print
+      document.getElementById('btn-export-json').addEventListener('click', () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(STATE, null, 2));
+        const a = document.createElement('a');
+        a.href = dataStr;
+        a.download = `fatou_grossesse_${STATE.fetDateString}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      });
+
+      document.getElementById('btn-print-summary').addEventListener('click', () => window.print());
+
+      // Language Switcher Toggle
+      document.getElementById('btn-toggle-lang').addEventListener('click', () => {
+        STATE.currentLang = STATE.currentLang === 'fr' ? 'en' : 'fr';
+        document.getElementById('btn-toggle-lang').textContent = STATE.currentLang.toUpperCase();
+        renderWindowsGrid();
+        update3DWeek(STATE.selectedWeek);
+      });
+    }
+
+    /**
+     * Application Init
+     */
+    window.onload = function () {
+      loadState();
+      updateHeaderUI();
+      renderWindowsGrid();
+      renderRMATimeline();
+      initJournal();
+      initKickSession();
+      initPhotoGallery();
+      initMedicationsTracker();
+      initHospitalBag();
+      initBirthPlan();
+      initContractionTimer();
+      initTabs();
+      setupEventListeners();
+      initThreeJS();
+      update3DWeek(12);
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>

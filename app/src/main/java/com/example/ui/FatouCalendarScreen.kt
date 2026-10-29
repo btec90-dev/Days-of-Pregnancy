@@ -11,6 +11,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -42,6 +43,9 @@ import com.example.ui.components.AudioHelper
 import com.example.ui.components.FatouLogo
 import com.example.ui.components.PregnancyCountdownCard
 import com.example.ui.components.UltrasoundView
+import com.example.ui.prenatal.CleanMobileNavMenu
+import com.example.ui.prenatal.TopQuickAccessBar
+import com.example.ui.components.*
 import com.example.ui.prenatal.BirthPlanBuilder
 import com.example.ui.prenatal.CategorizedMenu
 import com.example.ui.prenatal.IvfMedicationTracker
@@ -84,6 +88,7 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
     var currentSection by remember { mutableStateOf(PrenatalSection.GUIDE_PRENATAL) }
     var journalText by remember { mutableStateOf("") }
     var autoPlayAudio by remember { mutableStateOf(false) }
+    var isNavMenuOpen by remember { mutableStateOf(false) }
 
     val dateFormatterFr = remember { SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH) }
     val dateFormatterEn = remember { SimpleDateFormat("MMMM dd, yyyy", Locale.ENGLISH) }
@@ -129,38 +134,28 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
     }
 
     val scrollState = rememberScrollState()
+    LaunchedEffect(currentSection) {
+        scrollState.animateScrollTo(480)
+    }
 
-    BoxWithConstraints(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.radialGradient(
-                    colors = listOf(Color(0xFF382312), Color(0xFF150B04)),
-                    radius = 1200f
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFFE8D4B4), Color(0xFFC7A170))
                 )
             )
-            .padding(12.dp)
     ) {
-        val isDesktop = maxWidth >= 600.dp
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .shadow(24.dp, RoundedCornerShape(24.dp))
-                .clip(RoundedCornerShape(24.dp))
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color(0xFFE8D4B4), Color(0xFFC7A170))
-                    )
-                )
-                .border(8.dp, Color(0xFF926335), RoundedCornerShape(24.dp))
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
                     .verticalScroll(scrollState)
-                    .padding(16.dp)
-                    .padding(bottom = if (!isDesktop) 80.dp else 16.dp),
+                    .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
             // Header
@@ -211,6 +206,20 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                                 color = Color(0xFF78350F)
                             )
                         }
+                    }
+
+                    // Navigation Menu Trigger Button
+                    IconButton(
+                        onClick = { isNavMenuOpen = true },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .testTag("nav_drawer_trigger")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = if (isFrench) "Ouvrir le menu de navigation" else "Open navigation menu",
+                            tint = Color(0xFF92400E)
+                        )
                     }
 
                     Box(
@@ -287,6 +296,33 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
 
             Divider(color = Color(0xFF78350F).copy(alpha = 0.3f), thickness = 1.dp)
 
+            // Date Range & Room Tracking Banner requested by user
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color(0xFF92400E).copy(alpha = 0.12f),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Color(0xFF92400E).copy(alpha = 0.3f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (isFrench) "📅 31 Déc - 06 Jan 2027" else "📅 Dec 31 - Jan 06, 2027",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF78350F)
+                    )
+                    Text(
+                        text = "Room Tracking",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF92400E)
+                    )
+                }
+            }
+
             // Two Column Layout
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -303,6 +339,65 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                         audioHelper.toggleDoppler(currentWeek.heartRate) { isDopplerPlaying = it }
                     }
                 )
+
+                // Audio Narration Card (placed right under video player as requested)
+                Surface(
+                    color = Color(0xFFFAF5ED),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color(0xFFD97706).copy(alpha = 0.3f))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Button(
+                                onClick = {
+                                    if (isSpeaking) {
+                                        audioHelper.stopSpeaking()
+                                        isSpeaking = false
+                                    } else {
+                                        playWeekNarration(currentWeek)
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = if (isSpeaking) Color(0xFFB91C1C) else Color(0xFF92400E)),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (isSpeaking) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(if (isSpeaking) "Pause / Arrêter (En cours)" else "Écouter la narration posée", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("Auto-lecture", fontSize = 10.sp, color = Color(0xFF78350F))
+                                Switch(
+                                    checked = autoPlayAudio,
+                                    onCheckedChange = { autoPlayAudio = it },
+                                    modifier = Modifier.scale(0.7f)
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = "Transcription : Semaine ${currentWeek.week}. Votre petit garçon mesure ${currentWeek.metrics}, comparable à une ${currentWeek.fruit}. Développement : ${currentWeek.inUtero}",
+                            fontSize = 11.sp,
+                            color = Color(0xFF3B2814),
+                            fontStyle = FontStyle.Italic,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
 
                 // 40 Doors Grid
                 Column(
@@ -635,74 +730,12 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                             )
                         }
 
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text("Biométrie & Échelle", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF78350F))
-                            Text(currentWeek.metrics, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
-                            Text("Taille : ${currentWeek.fruit}", fontSize = 11.sp, fontStyle = FontStyle.Italic, color = Color(0xFF854D0E))
-                        }
+
                     }
 
-                    // Audio Narration Card
-                    Surface(
-                        color = Color(0xFFFAF5ED),
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color(0xFFD97706).copy(alpha = 0.3f))
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Button(
-                                    onClick = { playWeekNarration(currentWeek) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF92400E)),
-                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = if (isSpeaking) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(if (isSpeaking) "Lecture en cours..." else "Écouter la narration posée", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                }
 
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text("Auto-lecture", fontSize = 10.sp, color = Color(0xFF78350F))
-                                    Switch(
-                                        checked = autoPlayAudio,
-                                        onCheckedChange = { autoPlayAudio = it },
-                                        modifier = Modifier.scale(0.7f)
-                                    )
-                                }
-                            }
 
-                            Text(
-                                text = "Transcription : Semaine ${currentWeek.week}. Votre petit garçon mesure ${currentWeek.metrics}, comparable à une ${currentWeek.fruit}. Développement : ${currentWeek.inUtero}",
-                                fontSize = 11.sp,
-                                color = Color(0xFF3B2814),
-                                fontStyle = FontStyle.Italic,
-                                maxLines = 3,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
 
-                    // Biometrics Cards
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        BiometricCard("Longueur", currentWeek.metrics.split("·").firstOrNull() ?: currentWeek.metrics, Modifier.weight(1f))
-                        BiometricCard("Poids Estimé", currentWeek.metrics.split("·").lastOrNull() ?: "14 g", Modifier.weight(1f))
-                        BiometricCard("Fruit", currentWeek.fruit, Modifier.weight(1f))
-                    }
 
                     val milestone = remember(currentWeek.week) {
                         MilestoneLocalDataSource.getMilestone(currentWeek.week)
@@ -1028,141 +1061,34 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                                 }
                             }
                         }
-                    }
-                }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Stockage local Room actif", fontSize = 10.sp, color = Color(0xFF4A2C10))
-                Text("RMA of New York • DPA 22/07/2027", fontSize = 10.sp, color = Color(0xFF4A2C10))
-            }
-            }
-
-            if (!isDesktop) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    StickyBottomTabBar(
-                        selectedSection = currentSection,
-                        onSelectSection = { currentSection = it },
-                        isFrench = isFrench
-                    )
+                    Text("Stockage local Room actif", fontSize = 10.sp, color = Color(0xFF4A2C10))
+                    Text("RMA of New York • DPA 22/07/2027", fontSize = 10.sp, color = Color(0xFF4A2C10))
                 }
             }
+
+            StickyBottomTabBar(
+                selectedSection = currentSection,
+                onSelectSection = { currentSection = it },
+                isFrench = isFrench
+            )
         }
-    }
-}
 
-@Composable
-fun LegendItem(color: Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .background(color, CircleShape)
-                .border(0.5.dp, Color(0xFF78350F), CircleShape)
-        )
-        Text(label, fontSize = 10.sp, fontWeight = FontWeight.Medium, color = Color(0xFF3B2814))
-    }
-}
-
-@Composable
-fun BiometricCard(title: String, value: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        color = Color(0xFF92400E).copy(alpha = 0.08f),
-        shape = RoundedCornerShape(10.dp),
-        border = BorderStroke(1.dp, Color(0xFF92400E).copy(alpha = 0.2f))
-    ) {
-        Column(
-            modifier = Modifier.padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(title.uppercase(), fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color(0xFF78350F))
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905), maxLines = 1)
-        }
-    }
-}
-
-@Composable
-fun ClinicalSectionCard(title: String, content: String, onSpeak: () -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFBEB)),
-        border = BorderStroke(1.dp, Color(0xFFD97706).copy(alpha = 0.2f))
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
-                IconButton(onClick = onSpeak, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Default.VolumeUp, contentDescription = null, tint = Color(0xFF92400E), modifier = Modifier.size(16.dp))
-                }
-            }
-            Text(content, fontSize = 11.sp, color = Color(0xFF3B2814), fontStyle = FontStyle.Italic)
-        }
-    }
-}
-
-@Composable
-fun TabButton(title: String, isSelected: Boolean, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        color = if (isSelected) Color(0xFFFAF4E8) else Color(0xFF92400E).copy(alpha = 0.15f),
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-        border = BorderStroke(1.dp, if (isSelected) Color(0xFFBFA278) else Color.Transparent)
-    ) {
-        Text(
-            text = title,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            color = if (isSelected) Color(0xFF2E1905) else Color(0xFF78350F),
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
+        CleanMobileNavMenu(
+            isOpen = isNavMenuOpen,
+            onDismiss = { isNavMenuOpen = false },
+            selectedSection = currentSection,
+            onSelectSection = { currentSection = it },
+            isFrench = isFrench
         )
     }
 }
-
-@Composable
-fun TimelineRow(week: String, desc: String, status: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(week, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF92400E), modifier = Modifier.width(50.dp))
-        Text(desc, fontSize = 11.sp, color = Color(0xFF3B2814), modifier = Modifier.weight(1f))
-        Text(status, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
-    }
 }
-
-@Composable
-fun ChecklistItem(text: String) {
-    var checked by remember { mutableStateOf(true) }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = { checked = it },
-            colors = CheckboxDefaults.colors(checkedColor = Color(0xFF92400E))
-        )
-        Text(text, fontSize = 11.sp, color = Color(0xFF3B2814))
-    }
+}
 }
 

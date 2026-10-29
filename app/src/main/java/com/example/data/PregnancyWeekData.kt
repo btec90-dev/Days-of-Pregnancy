@@ -5,7 +5,7 @@ data class PregnancyWeek(
     val trimester: Int,
     val title: String,
     val dates: String,
-    val fruit: String,
+    val fruit: String, // Represents realistic baby/fetus developmental description in the womb
     val metrics: String,
     val heartRate: Int,
     val icon: String,
@@ -19,7 +19,7 @@ object PregnancyRepository {
     val weeks = listOf(
         PregnancyWeek(
             week = 1, trimester = 1, title = "Semaine 1", dates = "15 Oct - 21 Oct 2026",
-            fruit = "Graine de Pavot", metrics = "0.1 mm · 0.01 g", heartRate = 0, icon = "🌱",
+            fruit = "Blastocyste précurseur", metrics = "0.1 mm · 0.01 g", heartRate = 0, icon = "🌱",
             morpho = "Stade cellulaire précurseur. Préparation du lit vasculaire de l'endomètre utérin sous œstrogènes.",
             inUtero = "La muqueuse utérine se gorge de nutriments pour offrir le nid parfait au futur blastocyste.",
             steps = listOf("Date des dernières règles calculée.", "Préparation endométriale active.", "Prise quotidienne d'acide folique."),
@@ -27,7 +27,7 @@ object PregnancyRepository {
         ),
         PregnancyWeek(
             week = 2, trimester = 1, title = "Semaine 2", dates = "22 Oct - 28 Oct 2026",
-            fruit = "Graine de Sésame", metrics = "0.2 mm · 0.02 g", heartRate = 0, icon = "🌾",
+            fruit = "Nidation endométriale", metrics = "0.2 mm · 0.02 g", heartRate = 0, icon = "🌾",
             morpho = "Optimisation de l'endomètre en aspect trilaminaire supérieur à 8 mm d'épaisseur.",
             inUtero = "L'environnement utérin est parfaitement synchronisé pour la fenêtre d'implantation idéale.",
             steps = listOf("Échographie de contrôle de l'endomètre.", "Vérification épaisseur supérieure à 8 millimètres.", "Introduction des injections de progestérone."),
@@ -35,7 +35,7 @@ object PregnancyRepository {
         ),
         PregnancyWeek(
             week = 3, trimester = 1, title = "Semaine 3", dates = "29 Oct - 04 Nov 2026",
-            fruit = "Graine de Chia", metrics = "0.3 mm · 0.05 g", heartRate = 0, icon = "💧",
+            fruit = "Blastocyste J5 expansé", metrics = "0.3 mm · 0.05 g", heartRate = 0, icon = "💧",
             morpho = "Blastocyste expansé au stade d'éclosion pré-transfert au laboratoire d'embryologie.",
             inUtero = "Repos complet de l'utérus avant l'introduction délicate du cathéter de transfert sous échographie.",
             steps = listOf("Veille du transfert embryonnaire.", "Confirmation finale du blastocyste euploïde 46,XY.", "Hydratation optimale."),
@@ -43,7 +43,7 @@ object PregnancyRepository {
         ),
         PregnancyWeek(
             week = 4, trimester = 1, title = "Semaine 4", dates = "05 Nov - 11 Nov 2026",
-            fruit = "Graine de Pavot", metrics = "1.0 mm · 0.1 g", heartRate = 90, icon = "✨",
+            fruit = "Embryon en nidation", metrics = "1.0 mm · 0.1 g", heartRate = 90, icon = "✨",
             morpho = "Implantation du blastocyste J5 euploïde. Le trophoblaste s'ancre délicatement dans l'endomètre.",
             inUtero = "L'embryon mâle prend racine. Les premières sécrétions de l'hormone Bêta-hCG débutent.",
             steps = listOf("Transfert blastocyste réussi avec succès.", "Nidation active dans la cavité utérine.", "Attente sereine du premier dosage hormonal."),
@@ -51,7 +51,7 @@ object PregnancyRepository {
         ),
         PregnancyWeek(
             week = 5, trimester = 1, title = "Semaine 5", dates = "12 Nov - 18 Nov 2026",
-            fruit = "Pépin de Pomme", metrics = "2.0 mm · 0.2 g", heartRate = 110, icon = "🍏",
+            fruit = "Sac gestationnel & Vésicule", metrics = "2.0 mm · 0.2 g", heartRate = 110, icon = "🍏",
             morpho = "Différenciation en disque embryonnaire. Le sac gestationnel est nettement visualisé.",
             inUtero = "La vésicule vitelline nourrit l'embryon avant que le placenta ne prenne le relais.",
             steps = listOf("Dosages Bêta-hCG sériés.", "Confirmation du doublement exponentiel des taux.", "Vérification de la progestérone."),
@@ -59,7 +59,7 @@ object PregnancyRepository {
         ),
         PregnancyWeek(
             week = 6, trimester = 1, title = "Semaine 6", dates = "19 Nov - 25 Nov 2026",
-            fruit = "Pois Chiche", metrics = "4.0 mm · 0.4 g", heartRate = 125, icon = "🫘",
+            fruit = "Fœtus · Premiers battements", metrics = "4.0 mm · 0.4 g", heartRate = 125, icon = "🫘",
             morpho = "Fermeture du tube neural. Les ébauches des yeux et des oreilles apparaissent.",
             inUtero = "Les toutes premières pulsations du petit tube cardiaque embryonnaire s'activent !",
             steps = listOf("Premières pulsations cardiaques enregistrées.", "Poursuite du soutien en progestérone.", "Repos dès les premiers signes de fatigue."),
@@ -67,7 +67,7 @@ object PregnancyRepository {
         ),
         PregnancyWeek(
             week = 7, trimester = 1, title = "Semaine 7", dates = "26 Nov - 02 Déc 2026",
-            fruit = "Myrtille Bleue", metrics = "1.0 cm · 0.5 g", heartRate = 138, icon = "🫐",
+            fruit = "Fœtus · Bourgeons de membres", metrics = "1.0 cm · 0.5 g", heartRate = 138, icon = "🫐",
             morpho = "Bourgeons des bras et jambes visibles. L'embryon double de taille en sept jours.",
             inUtero = "Le petit cœur bat à 138 battements par minute, perceptible en échographie Doppler.",
             steps = listOf("Échographie de viabilité formelle.", "Visualisation du sac vitellin et de l'embryon.", "Rythme régulier confirmé."),
@@ -75,7 +75,7 @@ object PregnancyRepository {
         ),
         PregnancyWeek(
             week = 8, trimester = 1, title = "Semaine 8", dates = "03 Déc - 09 Déc 2026",
-            fruit = "Framboise Gourmande", metrics = "1.6 cm · 1.0 g", heartRate = 152, icon = "🍓",
+            fruit = "Fœtus · Doigts & paupières", metrics = "1.6 cm · 1.0 g", heartRate = 152, icon = "🍓",
             morpho = "Les doigts et orteils se modèlent. Les paupières recouvrent délicatement les yeux.",
             inUtero = "L'embryon réalise de minuscules mouvements spontanés dans son cocon amniotique.",
             steps = listOf("Formation des quatre cavités cardiaques.", "Consultation d'évolution obstétrique.", "Bonne hydratation continue."),
@@ -83,7 +83,7 @@ object PregnancyRepository {
         ),
         PregnancyWeek(
             week = 9, trimester = 1, title = "Semaine 9", dates = "10 Déc - 16 Déc 2026",
-            fruit = "Olive Verte", metrics = "2.3 cm · 2.0 g", heartRate = 165, icon = "🫒",
+            fruit = "Fœtus · Organogenèse active", metrics = "2.3 cm · 2.0 g", heartRate = 165, icon = "🫒",
             morpho = "Passage du statut d'embryon à celui de fœtus. Les articulations des coudes et genoux plient.",
             inUtero = "Les organes génitaux internes de votre petit garçon continuent leur différenciation.",
             steps = listOf("Fin de l'organogenèse embryonnaire principale.", "Planification du sevrage progressif des hormones.", "Examen de tension artérielle."),
@@ -91,7 +91,7 @@ object PregnancyRepository {
         ),
         PregnancyWeek(
             week = 10, trimester = 1, title = "Semaine 10", dates = "17 Déc - 23 Déc 2026",
-            fruit = "Fraise des Bois", metrics = "3.1 cm · 4.0 g", heartRate = 162, icon = "🍓",
+            fruit = "Fœtus · Calcification osseuse", metrics = "3.1 cm · 4.0 g", heartRate = 162, icon = "🍓",
             morpho = "Les os commencent à se calcifier. La silhouette fœtale s'allonge harmonieusement.",
             inUtero = "Le placenta prend entièrement la relève hormonale et nutritionnelle.",
             steps = listOf("Consultation de graduation et relais médical.", "Transmission du dossier complet à l'obstétricien.", "Arrêt guidé des injections."),
@@ -99,243 +99,243 @@ object PregnancyRepository {
         ),
         PregnancyWeek(
             week = 11, trimester = 1, title = "Semaine 11", dates = "24 Déc - 30 Déc 2026",
-            fruit = "Figue Douce", metrics = "4.1 cm · 7.0 g", heartRate = 160, icon = "🪴",
-            morpho = "Le fœtus commence à déglutir le liquide amniotique. Les ongles microscopiques apparaissent.",
-            inUtero = "Activité motrice continue : bébé s'étire et remue doucement ses membres.",
-            steps = listOf("Bilan sanguin du premier trimestre.", "Planification du rendez-vous d'écho T1.", "Suivi du poids maternel."),
-            advice = "Massez votre ventre avec une huile d'amande douce naturelle après la douche."
+            fruit = "Fœtus · Profil facial complet", metrics = "4.1 cm · 7.0 g", heartRate = 160, icon = "🪴",
+            morpho = "Le profil facial s'affine nettement, les ongles commencent à se former aux extrémités.",
+            inUtero = "Le fœtus bouge activement dans le liquide amniotique, s'étirant et se tournant.",
+            steps = listOf("Préparation du bilan du premier trimestre.", "Évaluation de la clarté nucale à venir.", "Hydratation renforcée."),
+            advice = "Partagez vos émotions et parlez à votre bébé, il commence à percevoir les sons."
         ),
         PregnancyWeek(
             week = 12, trimester = 1, title = "Semaine 12", dates = "31 Déc - 06 Jan 2027",
-            fruit = "Prune Juteuse", metrics = "5.4 cm · 14 g", heartRate = 158, icon = "🫐",
-            morpho = "LCC de 54 mm. Les reins fœtaux fonctionnent et les cordes vocales se différencient.",
-            inUtero = "Bébé réagit aux caresses extérieures et serre parfois ses petits poings.",
-            steps = listOf("Échographie T1 (Clarté nucale) déterminante.", "Prise de sang DPNI de sécurité génétique.", "Relais obstétrique officiel."),
-            advice = "Profitez de cette étape clé rassurante pour partager votre joie avec vos proches."
+            fruit = "Fœtus · Échographie T1 & DPNI", metrics = "5.4 cm · 14 g", heartRate = 158, icon = "🫐",
+            morpho = "Clarté nucale et os propre du nez visualisés. Organes pleinement en place.",
+            inUtero = "Le fœtus avale du liquide amniotique et commence à faire ses premiers mouvements respiratoires.",
+            steps = listOf("Échographie T1 de dépistage officiel (RMA of New York).", "Test DPNI sanguin de trisomie.", "Validation du premier trimestre."),
+            advice = "Savourez la beauté de cette échographie du premier trimestre avec votre conjoint."
         ),
         PregnancyWeek(
             week = 13, trimester = 1, title = "Semaine 13", dates = "07 Jan - 13 Jan 2027",
-            fruit = "Pêche Veloutée", metrics = "7.4 cm · 23 g", heartRate = 155, icon = "🍑",
-            morpho = "Les empreintes digitales uniques de votre garçon sont désormais formées.",
-            inUtero = "Clôture radieuse du 1er Trimestre ! Le placenta est parfaitement autonome.",
-            steps = listOf("Bilan récapitulatif du Premier Trimestre validé.", "Poursuite des vitamines prénatales.", "Planification du 2e Trimestre."),
-            advice = "Votre vitalité augmente : les marches quotidiennes en extérieur sont très bénéfiques."
+            fruit = "Fœtus · Fin du 1er trimestre", metrics = "7.4 cm · 23 g", heartRate = 155, icon = "🍑",
+            morpho = "Empreintes digitales uniques en formation. Risque de fausse couche considérablement réduit.",
+            inUtero = "Le placenta assure une nutrition optimale. Le confort maternel s'améliore nettement.",
+            steps = listOf("Clôture du 1er trimestre réussie.", "Annonce sécurisée aux proches.", "Suivi obstétrical du 2ème trimestre planifié."),
+            advice = "Reprenez une activité physique douce comme le yoga prénatal ou la marche."
         ),
         PregnancyWeek(
             week = 14, trimester = 2, title = "Semaine 14", dates = "14 Jan - 20 Jan 2027",
-            fruit = "Citron Meyer", metrics = "8.7 cm · 43 g", heartRate = 152, icon = "🍋",
-            morpho = "Les traits du visage s'affinent. Le fœtus fait des mimiques et peut sucer son pouce.",
-            inUtero = "La thyroïde fœtale commence à produire ses propres hormones métaboliques.",
-            steps = listOf("Bienvenue dans le 2e Trimestre de sérénité.", "Surveillance du gain pondéral.", "Apport suffisant en calcium."),
-            advice = "Favorisez les amandes, les laitages doux et les légumes verts riches en calcium."
+            fruit = "Fœtus · Mouvements réflexes", metrics = "8.7 cm · 43 g", heartRate = 152, icon = "🍋",
+            morpho = "Le cou s'allonge et le menton ne repose plus sur la poitrine. Premiers sourcils.",
+            inUtero = "Le fœtus fait des grimaces et réagit aux pressions exercées sur l'abdomen.",
+            steps = listOf("Entrée dans le deuxième trimestre.", "Surveillance du poids et de la tension.", "Vitamines prénatales adaptées."),
+            advice = "Portez des chaussures confortables et surélevez vos jambes le soir."
         ),
         PregnancyWeek(
             week = 15, trimester = 2, title = "Semaine 15", dates = "21 Jan - 27 Jan 2027",
-            fruit = "Pomme Dorée", metrics = "10.1 cm · 70 g", heartRate = 150, icon = "🍎",
-            morpho = "Un duvet protecteur (lanugo) recouvre le corps. Les oreilles atteignent leur place définitive.",
-            inUtero = "Le petit garçon perçoit les vibrations sonores et la voix de sa maman.",
-            steps = listOf("Consultation prénatale du 4e mois.", "Mesure de la hauteur utérine.", "Vêtements amples confortables."),
-            advice = "Parlez tendrement à votre bébé le soir en posant les mains sur votre ventre."
+            fruit = "Fœtus · Squelette en ossification", metrics = "10.1 cm · 70 g", heartRate = 150, icon = "🍎",
+            morpho = "Les os se densifient et deviennent visibles à l'échographie. Peau fine translucide.",
+            inUtero = "Il perçoit les bruits sourds de votre voix et les battements de votre cœur.",
+            steps = listOf("Consultation de suivi prénatal standard.", "Écoute des battements cardiaques fœtaux.", "Exercices de respiration."),
+            advice = "Chantez des comptines douces, votre bébé y est sensible."
         ),
         PregnancyWeek(
             week = 16, trimester = 2, title = "Semaine 16", dates = "28 Jan - 03 Fév 2027",
-            fruit = "Avocat Hass", metrics = "11.6 cm · 100 g", heartRate = 148, icon = "🥑",
-            morpho = "Bébé atteint environ 100 grammes. Ses yeux réagissent aux variations lumineuses.",
-            inUtero = "Le cœur pompe environ 25 litres de sang par jour à travers les vaisseaux ombilicaux.",
-            steps = listOf("Bilan de contrôle sérique.", "Contrôle tensionnel systématique.", "Exercices doux de posture."),
-            advice = "Dormez de préférence sur le côté gauche avec un coussin entre les genoux."
+            fruit = "Fœtus · Audition active", metrics = "11.6 cm · 100 g", heartRate = 148, icon = "🥑",
+            morpho = "Les muscles du dos se renforcent, la tête se redresse bien droite.",
+            inUtero = "Les premiers frémissements de mouvements fœtaux peuvent commencer à se faire ressentir.",
+            steps = listOf("Planification de la grande échographie morphologique T2.", "Bilan sanguin de contrôle.", "Hydratation optimale."),
+            advice = "Restez à l'écoute de votre corps pour percevoir les tout premiers papillons."
         ),
         PregnancyWeek(
             week = 17, trimester = 2, title = "Semaine 17", dates = "04 Fév - 10 Fév 2027",
-            fruit = "Poire Conférence", metrics = "13.0 cm · 140 g", heartRate = 147, icon = "🍐",
-            morpho = "Accumulation de graisse brune sous-cutanée pour aider le bébé à maintenir sa chaleur.",
-            inUtero = "Le cordon ombilical s'épaissit et transporte tous les nutriments indispensables.",
-            steps = listOf("Bilan en fer (ferritine).", "Hydratation d'au moins 2 litres par jour.", "Séances de relaxation."),
-            advice = "Écoutez des musiques calmes : les mélodies douces apaisent le fœtus in utero."
+            fruit = "Fœtus · Tissu adipeux brun", metrics = "13.0 cm · 140 g", heartRate = 147, icon = "🍐",
+            morpho = "Formation de la graisse brune essentielle pour la régulation thermique future.",
+            inUtero = "Le squelette cartilagineux se durcit en os solides.",
+            steps = listOf("Contrôle de la glycémie et tension.", "Vérification de l'apport en calcium et fer.", "Marche quotidienne."),
+            advice = "Consommez des aliments riches en fer et vitamine C pour favoriser l'absorption."
         ),
         PregnancyWeek(
             week = 18, trimester = 2, title = "Semaine 18", dates = "11 Fév - 17 Fév 2027",
-            fruit = "Poivron Jaune", metrics = "14.2 cm · 190 g", heartRate = 146, icon = "🫑",
-            morpho = "Les influx nerveux se transmettent plus rapidement grâce à la myéline.",
-            inUtero = "Vous ressentez les tout premiers effleurements de mouvements comme des battements d'ailes !",
-            steps = listOf("Perception des premiers mouvements actifs.", "Prise de RDV pour l'écho morphologique T2.", "Examen dentaire recommandé."),
-            advice = "Notez la date de ses premiers petits mouvements dans votre carnet prénatal."
+            fruit = "Fœtus · Cycles veille / sommeil", metrics = "14.2 cm · 190 g", heartRate = 146, icon = "🫑",
+            morpho = "La myéline entoure les nerfs. Les oreilles atteignent leur position définitive.",
+            inUtero = "Le bébé bâille, avale et alterne des phases de sommeil profond et d'éveil actif.",
+            steps = listOf("Préparation de la chambre et du cocon.", "Suivi de la courbe de poids maternel.", "Repos adapté."),
+            advice = "Dormez de préférence sur le côté gauche pour optimiser le flux sanguin utérin."
         ),
         PregnancyWeek(
             week = 19, trimester = 2, title = "Semaine 19", dates = "18 Fév - 24 Fév 2027",
-            fruit = "Mangue Mûre", metrics = "15.3 cm · 240 g", heartRate = 145, icon = "🥭",
-            morpho = "Le vernix caseosa crémeux protège la peau délicate du contact permanent du liquide.",
-            inUtero = "Les centres sensoriels cérébraux (ouïe, goût, toucher) se développent à vive allure.",
-            steps = listOf("Mesure de la croissance fœtale.", "Étirements réguliers du dos.", "Vérification absence de contractions."),
-            advice = "Surélevez légèrement les jambes en fin de journée pour stimuler la circulation sanguine."
+            fruit = "Fœtus · Vernix caseosa protectrice", metrics = "15.3 cm · 240 g", heartRate = 145, icon = "🥭",
+            morpho = "Sécrétion du vernix caseosa, une substance cireuse protégeant la peau fœtale.",
+            inUtero = "Les sens s'affinent : goût, ouïe, toucher et odorat se développent en réseau.",
+            steps = listOf("Sélection des cours de préparation à l'accouchement.", "Exercices doux de bassin.", "Écoute fœtale."),
+            advice = "Appliquez une crème hydratante ou une huile naturelle sur le ventre pour prévenir les vergetures."
         ),
         PregnancyWeek(
             week = 20, trimester = 2, title = "Semaine 20", dates = "25 Fév - 03 Mar 2027",
-            fruit = "Petite Banane", metrics = "25.6 cm · 300 g", heartRate = 144, icon = "🍌",
-            morpho = "Le cap de la mi-grossesse (20 SA) ! La mesure s'effectue désormais de la tête aux talons.",
-            inUtero = "Votre petit garçon donne des coups de pied perceptibles par la main posée sur le ventre.",
-            steps = listOf("Consultation prénatale pivot du 5e mois.", "Mesures biométriques détaillées.", "Ateliers de préparation."),
-            advice = "Prenez le temps de fêter ce cap symbolique de la mi-parcours de grossesse !"
+            fruit = "Fœtus · Mi-parcours morphologique", metrics = "25.6 cm · 300 g", heartRate = 144, icon = "🍌",
+            morpho = "Cap des 20 semaines atteint ! Morphologie complète et détaillée.",
+            inUtero = "Les mouvements de votre petit garçon sont désormais bien perceptibles et réguliers.",
+            steps = listOf("Grande Échographie Morphologique T2 officielle.", "Vérification cardiaque et placentaire approfondie.", "Célébration de la mi-parcours."),
+            advice = "Un moment inoubliable : profitez pleinement de cette échographie détaillée du 2ème trimestre !"
         ),
         PregnancyWeek(
             week = 21, trimester = 2, title = "Semaine 21", dates = "04 Mar - 10 Mar 2027",
-            fruit = "Carotte Géante", metrics = "26.7 cm · 360 g", heartRate = 143, icon = "🥕",
-            morpho = "La moelle osseuse produit désormais les globules rouges du bébé.",
-            inUtero = "Alternance de cycles de veille et de sommeil paisible (environ 18 heures par jour).",
-            steps = listOf("Analyse d'urine mensuelle.", "Contrôle de la hauteur utérine (~18 cm).", "Apport régulier en vitamine D."),
-            advice = "Portez des chaussures confortables à petit talon stable pour préserver vos chevilles."
+            fruit = "Fœtus · Moelle osseuse productrice", metrics = "26.7 cm · 360 g", heartRate = 143, icon = "🥕",
+            morpho = "La moelle osseuse commence à produire activement les globules sanguins.",
+            inUtero = "Le système digestif s'exerce en avalant régulièrement du liquide amniotique.",
+            steps = listOf("Analyse des résultats de l'échographie T2 avec l'obstétricien.", "Bilan dentaire de grossesse.", "Hydratation."),
+            advice = "Maintenez une bonne hygiène bucco-dentaire et consultez votre dentiste si nécessaire."
         ),
         PregnancyWeek(
             week = 22, trimester = 2, title = "Semaine 22", dates = "11 Mar - 17 Mar 2027",
-            fruit = "Papaye", metrics = "27.8 cm · 430 g", heartRate = 142, icon = "🫐",
-            morpho = "Échographie morphologique de niveau II : chaque organe est inspecté avec rigueur.",
-            inUtero = "Confirmation de la parfaite santé anatomique de votre petit garçon.",
-            steps = listOf("Échographie morphologique du 2e trimestre.", "Étude Doppler des artères utérines.", "Vérification de l'insertion placentaire."),
-            advice = "Conservez précieusement les clichés 3D de l'écho montrant son profil bien dessiné !"
+            fruit = "Fœtus · Cils & sourcils formés", metrics = "27.8 cm · 430 g", heartRate = 142, icon = "🫐",
+            morpho = "Les sourcils et les cils sont parfaitement dessinés. Les ongles recouvrent les doigts.",
+            inUtero = "Le bébé réagit vivement aux bruits extérieurs brusques par des sursauts.",
+            steps = listOf("Surveillance de la tension artérielle.", "Vérification du col utérin.", "Marche et étirements doux."),
+            advice = "Évitez les environnements trop bruyants et privilégiez une atmosphère musicale apaisante."
         ),
         PregnancyWeek(
             week = 23, trimester = 2, title = "Semaine 23", dates = "18 Mar - 24 Mar 2027",
-            fruit = "Aubergine Ronde", metrics = "28.9 cm · 500 g", heartRate = 142, icon = "🍆",
-            morpho = "Bébé atteint le demi-kilo (500 g). La peau s'épaissit et se colore doucement.",
-            inUtero = "Les alvéoles pulmonaires débutent la synthèse du surfactant.",
-            steps = listOf("Prise de poids fœtale harmonieuse.", "Contrôle du col de l'utérus.", "Discussion du projet de naissance."),
-            advice = "Chantez ou lisez des histoires à voix haute : bébé enregistre votre tonalité vocale."
+            fruit = "Fœtus · Vaisseaux & capillaires actifs", metrics = "28.9 cm · 500 g", heartRate = 142, icon = "🍆",
+            morpho = "Les poumons fabriquent le surfactant, substance vitale pour la respiration future.",
+            inUtero = "Les petits vaisseaux sanguins sous la peau donnent une teinte rosée au fœtus.",
+            steps = listOf("Suivi mensuel obstétrical.", "Contrôle de l'hémoglobine et de la ferritinémie.", "Repos régulier."),
+            advice = "Surélevez vos jambes et pratiquez le drainage lymphatique léger en cas de jambes lourdes."
         ),
         PregnancyWeek(
             week = 24, trimester = 2, title = "Semaine 24", dates = "25 Mar - 31 Mar 2027",
-            fruit = "Cantaloup Parfumé", metrics = "30.0 cm · 600 g", heartRate = 140, icon = "🍈",
-            morpho = "Seuil international de viabilité fœtale atteint. Cils et sourcils sont nettement tracés.",
-            inUtero = "Bébé s'entraîne à faire des mouvements respiratoires dans le liquide amniotique.",
-            steps = listOf("Seuil de viabilité médicale franchi avec brio.", "Prescription du test HGPO pour le diabète.", "Contrôle de l'hémoglobine."),
-            advice = "Pratiquez des respirations complètes chaque matin pour bien oxygéner votre corps."
+            fruit = "Fœtus · Seuil de viabilité fœtale", metrics = "30.0 cm · 600 g", heartRate = 140, icon = "🍈",
+            morpho = "Cap majeur de viabilité extra-utérine. Les alvéoles pulmonaires se multiplient.",
+            inUtero = "Le fœtus réagit aux caresses sur le ventre en poussant délicatement en retour.",
+            steps = listOf("Consultation du 6ème mois.", "Dépistage du diabète gestationnel (HGPO si prescrit).", "Enregistrement des coups."),
+            advice = "Commencez à suivre régulièrement les mouvements quotidiens de votre bébé."
         ),
         PregnancyWeek(
             week = 25, trimester = 2, title = "Semaine 25", dates = "01 Avr - 07 Avr 2027",
-            fruit = "Chou-Fleur", metrics = "34.6 cm · 660 g", heartRate = 140, icon = "🥦",
-            morpho = "Les narines s'ouvrent. Bébé réagit vivement aux bruits soudains de l'extérieur.",
-            inUtero = "La colonne vertébrale se consolide et acquiert toute sa souplesse.",
-            steps = listOf("Réalisation du test d'hyperglycémie HGPO 75g.", "Prise de sang de contrôle des anticorps.", "Confirmation de la maternité."),
-            advice = "Buvez régulièrement tout au long de la journée pour soutenir le fonctionnement rénal."
+            fruit = "Fœtus · Cheveux & réactivité sonore", metrics = "34.6 cm · 660 g", heartRate = 140, icon = "🥦",
+            morpho = "Les cheveux poussent avec leur pigmentation. La colonne vertébrale se consolide.",
+            inUtero = "Il distingue la voix de sa maman de celle de son papa et y répond.",
+            steps = listOf("Discussion autour du projet de naissance.", "Choix de la maternité.", "Exercices de respiration."),
+            advice = "Parlez-lui souvent : le lien affectif prénatal se fortifie de jour en jour."
         ),
         PregnancyWeek(
             week = 26, trimester = 2, title = "Semaine 26", dates = "08 Avr - 14 Avr 2027",
-            fruit = "Courgette Ronde", metrics = "35.6 cm · 760 g", heartRate = 139, icon = "🥒",
-            morpho = "Pour la première fois, les yeux de bébé s'entrouvrent in utero et battent des paupières.",
-            inUtero = "L'activité cérébrale montre des cycles structurés comparables au nouveau-né.",
-            steps = listOf("Consultation prénatale du 6e mois.", "Surveillance d'éventuels gonflements des chevilles.", "Comptage des mouvements fœtaux."),
-            advice = "Faites des pauses régulières lors de vos activités pour éviter la station debout prolongée."
+            fruit = "Fœtus · Yeux s'ouvrent au clignement", metrics = "35.6 cm · 760 g", heartRate = 139, icon = "🥒",
+            morpho = "Les yeux s'entrouvrent et perçoivent les variations de lumière à travers la paroi.",
+            inUtero = "Le cerveau présente des ondes cérébrales similaires à celles d'un nouveau-né endormi.",
+            steps = listOf("Contrôle glycémique et tension.", "Vérification du carnet de suivi.", "Marche douce."),
+            advice = "Exposez votre ventre à une lumière douce et observez les réactions de votre bébé."
         ),
         PregnancyWeek(
             week = 27, trimester = 2, title = "Semaine 27", dates = "15 Avr - 21 Avr 2027",
-            fruit = "Chou Kale", metrics = "36.6 cm · 875 g", heartRate = 138, icon = "🥬",
-            morpho = "Dernière semaine du Deuxième Trimestre. Le cerveau forme ses sillons et replis.",
-            inUtero = "Le diaphragme a de petits hoquets bénins tout à fait normaux qui musclent son thorax.",
-            steps = listOf("Fin victorieuse du Deuxième Trimestre.", "Inscription aux cours de préparation à la naissance.", "Bilan biologique rénal."),
-            advice = "Les petits hoquets réguliers ressentis dans le ventre sont le signe d'une grande vitalité."
+            fruit = "Fœtus · Fin du 2ème trimestre", metrics = "36.6 cm · 875 g", heartRate = 138, icon = "🥬",
+            morpho = "Clôture du deuxième trimestre ! Le fœtus respire du liquide amniotique régulièrement.",
+            inUtero = "Il rêve activement pendant ses phases de sommeil paradoxal.",
+            steps = listOf("Bilan de fin de 2ème trimestre.", "Préparation administrative de la maternité.", "Dernières injections ou compléments de fin de protocole."),
+            advice = "Félicitations pour avoir franchi le deuxième trimestre avec brio !"
         ),
         PregnancyWeek(
             week = 28, trimester = 3, title = "Semaine 28", dates = "22 Avr - 28 Avr 2027",
-            fruit = "Gros Ananas", metrics = "37.6 cm · 1.0 kg", heartRate = 138, icon = "🍍",
-            morpho = "Bienvenue au 3e Trimestre ! Bébé franchit la barre magnifique du premier kilo (1 000 g).",
-            inUtero = "Le sommeil paradoxal fœtal s'installe : votre petit prince fait ses tout premiers rêves.",
-            steps = listOf("Entrée dans le 3e Trimestre.", "Injection anti-D si rhésus négatif maternel.", "Numération sanguine complète (NFS)."),
-            advice = "Commencez à préparer tranquillement la chambre du bébé et les premiers pyjamas doux."
+            fruit = "Fœtus · Entrée 3ème trimestre", metrics = "37.6 cm · 1.0 kg", heartRate = 138, icon = "🍍",
+            morpho = "Ouverture officielle du troisième trimestre. Le système immunitaire élabore ses défenses.",
+            inUtero = "Le fœtus occupe une grande partie de l'espace utérin et se positionne progressivement.",
+            steps = listOf("Consultation du 7ème mois.", "Injection d'immunoglobulines anti-D si maman de rhesus négatif.", "Vaccination coqueluche."),
+            advice = "Prévoyez vos rendez-vous de préparation à l'accouchement et l'anesthésiste."
         ),
         PregnancyWeek(
             week = 29, trimester = 3, title = "Semaine 29", dates = "29 Avr - 05 Mai 2027",
-            fruit = "Courge Butternut", metrics = "38.6 cm · 1.15 kg", heartRate = 137, icon = "🎃",
-            morpho = "Le fœtus régule mieux sa chaleur. Ses os absorbent quotidiennement du calcium.",
-            inUtero = "Bébé pousse vigoureusement sur la paroi utérine et fait onduler le ventre maternel.",
-            steps = listOf("Consultation du 7e mois.", "Contrôle de la présentation du bébé (tête ou siège).", "Consommation d'aliments riches en fer."),
-            advice = "Intégrez des lentilles, du persil frais et des aliments riches en fer à vos menus."
+            fruit = "Fœtus · Régulation thermique active", metrics = "38.6 cm · 1.15 kg", heartRate = 137, icon = "🎃",
+            morpho = "Le cerveau contrôle désormais la respiration rythmique et la température corporelle.",
+            inUtero = "Les os continuent d'emmagasiner le calcium maternel en grande quantité.",
+            steps = listOf("Surveillance accrue de la tension artérielle.", "Vérification des apports en calcium et magnésium.", "Repos fractionné."),
+            advice = "Consommez des produits laitiers ou des sources végétales riches en calcium."
         ),
         PregnancyWeek(
             week = 30, trimester = 3, title = "Semaine 30", dates = "06 Mai - 12 Mai 2027",
-            fruit = "Chou Blanc", metrics = "39.9 cm · 1.3 kg", heartRate = 136, icon = "🥬",
-            morpho = "Le liquide amniotique atteint son pic de volume maximal avant de diminuer légèrement.",
-            inUtero = "Bébé tourne la tête en direction des lumières vives projetées contre le ventre.",
-            steps = listOf("Hauteur utérine (~28 cm).", "Planification de l'échographie T3.", "Exercices doux de périnée."),
-            advice = "Pratiquez de légères contractions du périnée pour préserver la tonicité pelvienne."
+            fruit = "Fœtus · Sommeil paradoxal & rêves", metrics = "39.9 cm · 1.3 kg", heartRate = 136, icon = "🥬",
+            morpho = "La peau devient plus lisse grâce à l'accumulation du tissu adipeux sous-cutané.",
+            inUtero = "Le fœtus cligne des yeux et réagit aux flashs lumineux extérieurs sur le ventre.",
+            steps = listOf("Contrôle échographique de croissance du 3ème trimestre.", "Vérification du volume amniotique.", "Position fœtale."),
+            advice = "Pratiquez des exercices de respiration profonde pour soulager le diaphragme."
         ),
         PregnancyWeek(
             week = 31, trimester = 3, title = "Semaine 31", dates = "13 Mai - 19 Mai 2027",
-            fruit = "Noix de Coco", metrics = "41.1 cm · 1.5 kg", heartRate = 135, icon = "🥥",
-            morpho = "Prise de poids rapide (~200 g par semaine). Les cinq sens du bébé sont actifs.",
-            inUtero = "L'espace devient plus étroit et bébé replie harmonieusement ses bras et jambes.",
-            steps = listOf("Surveillance régulière de la tension artérielle.", "Vérification des mouvements quotidiens.", "Préparation du trousseau."),
-            advice = "Reposez-vous en position semi-assise pour faciliter la digestion et éviter les reflux."
+            fruit = "Fœtus · Poussée de croissance rapide", metrics = "41.1 cm · 1.5 kg", heartRate = 135, icon = "🥥",
+            morpho = "Les cinq sens fonctionnent à plein régime. Le cerveau développe des milliards de connexions.",
+            inUtero = "Les mouvements vigoureux se font plus amples mais l'espace devient plus exigu.",
+            steps = listOf("Consultation obstétricale de routine.", "Comptage quotidien des mouvements fœtaux.", "Hydratation."),
+            advice = "Notez chaque jour les périodes d'activité de votre bébé pour suivre son bien-être."
         ),
         PregnancyWeek(
             week = 32, trimester = 3, title = "Semaine 32", dates = "20 Mai - 26 Mai 2027",
-            fruit = "Courge Spaghetti", metrics = "42.4 cm · 1.7 kg", heartRate = 135, icon = "🎃",
-            morpho = "Échographie T3 de biométrie finale. Les ongles atteignent le bout des doigts.",
-            inUtero = "La majorité des bébés se placent désormais tête vers le bas (présentation céphalique).",
-            steps = listOf("Échographie du troisième trimestre (T3).", "Vérification de la croissance et du liquide.", "Doppler ombilical de sécurité."),
-            advice = "L'échographie confirme la bonne position céphalique de votre bébé : une étape rassurante !"
+            fruit = "Fœtus · Ongles & proportions finales", metrics = "42.4 cm · 1.7 kg", heartRate = 135, icon = "🎃",
+            morpho = "Les ongles des mains poussent jusqu'au bout des doigts. Cheveux bien fournis.",
+            inUtero = "Le bébé prend sa position de naissance définitive (généralement tête en bas / céphalique).",
+            steps = listOf("Rendez-vous avec l'anesthésiste de la maternité.", "Validation du dossier obstétrical.", "Valise de maternité préparée."),
+            advice = "Finalisez la valise de maternité pour vivre sereinement les dernières semaines."
         ),
         PregnancyWeek(
-            week = 33, trimester = 3, title = "Semaine 33", dates = "27 Mai - 02 Juin 2027",
-            fruit = "Ananas Victoria", metrics = "43.7 cm · 1.9 kg", heartRate = 134, icon = "🍍",
-            morpho = "Les anticorps maternels traversent abondamment le placenta pour immuniser le bébé.",
-            inUtero = "Les os du crâne restent flexibles et non soudés pour faciliter la future naissance.",
-            steps = listOf("Consultation prénatale du 8e mois.", "Examen clinique du bassin.", "Massages préparatoires à l'huile végétale."),
-            advice = "Un massage doux à l'huile d'amande douce améliore grandement la souplesse tissulaire."
+            week = 33, trimester = 3, title = "Semaine 33", dates = "27 Mai - 02 Jun 2027",
+            fruit = "Fœtus · Immunité maternelle acquise", metrics = "43.7 cm · 1.9 kg", heartRate = 134, icon = "🍍",
+            morpho = "Les anticorps maternels traversent le placenta pour protéger le bébé après la naissance.",
+            inUtero = "Le crâne reste souple (non soudé) pour faciliter le passage lors de l'accouchement.",
+            steps = listOf("Suivi prénatal bimensuel.", "Surveillance de l'albuminurie et de la tension.", "Repos des jambes."),
+            advice = "Évitez les stations debout prolongées et profitez de moments de repos."
         ),
         PregnancyWeek(
-            week = 34, trimester = 3, title = "Semaine 34", dates = "03 Juin - 09 Juin 2027",
-            fruit = "Cantaloup Mûr", metrics = "45.0 cm · 2.15 kg", heartRate = 133, icon = "🍈",
-            morpho = "Le surfactant pulmonaire est presque entièrement mature. Bébé dépasse 2 kg.",
-            inUtero = "Le petit garçon reconnaît familièrement la voix de sa maman et réagit aux caresses.",
-            steps = listOf("Consultation anesthésique obligatoire.", "Dossier administratif de maternité complété.", "Valise de naissance prête."),
-            advice = "Préparez votre valise avec de jolis pyjamas confortables en coton pour le séjour à la maternité."
+            week = 34, trimester = 3, title = "Semaine 34", dates = "03 Jun - 09 Jun 2027",
+            fruit = "Fœtus · Position céphalique idéale", metrics = "45.0 cm · 2.15 kg", heartRate = 133, icon = "🍈",
+            morpho = "Le système central nerveux et les poumons atteignent une maturité presque complète.",
+            inUtero = "Le fœtus est positionné tête en bas, prêt pour le grand voyage.",
+            steps = listOf("Consultation du 8ème mois.", "Vérification de la présentation fœtale (céphalique).", "Plan d'accouchement finalisé."),
+            advice = "Préparez doucement votre esprit à l'accueil de votre petit garçon."
         ),
         PregnancyWeek(
-            week = 35, trimester = 3, title = "Semaine 35", dates = "10 Juin - 16 Juin 2027",
-            fruit = "Melon Miel", metrics = "46.2 cm · 2.4 kg", heartRate = 132, icon = "🍈",
-            morpho = "Les testicules sont descendus dans le scrotum. Le foie stocke du fer pour la naissance.",
-            inUtero = "Le bébé accumule les réserves qui lui serviront pour ses premiers jours de vie.",
-            steps = listOf("Dépistage du Streptocoque B (prélèvement vaginal).", "Examen du col utérin par la sage-femme.", "Derniers ajustements logistiques."),
-            advice = "Mémorisez l'itinéraire vers la maternité et gardez les numéros d'urgence sous la main."
+            week = 35, trimester = 3, title = "Semaine 35", dates = "10 Jun - 16 Jun 2027",
+            fruit = "Fœtus · Organes pleinement matures", metrics = "46.2 cm · 2.4 kg", heartRate = 132, icon = "🍈",
+            morpho = "Les reins sont pleinement fonctionnels et le foie élimine les déchets fœtaux.",
+            inUtero = "Le bébé arrondit ses joues et sa peau devient rose et rebondie.",
+            steps = listOf("Derniers prélèvements vaginaux de dépistage (streptocoque B).", "Consultation anesthésie validée.", "Surveillance des contractions."),
+            advice = "Restez sereine, entourez-vous d'ondes positives et de bienveillance."
         ),
         PregnancyWeek(
-            week = 36, trimester = 3, title = "Semaine 36", dates = "17 Juin - 23 Juin 2027",
-            fruit = "Grande Papaye", metrics = "47.4 cm · 2.6 kg", heartRate = 132, icon = "🫐",
-            morpho = "La tête descend doucement dans le bassin pelvien, libérant le diaphragme de la maman.",
-            inUtero = "Vous respirez plus aisément, bien que les envies d'uriner puissent être plus fréquentes.",
-            steps = listOf("Consultation obligatoire du 9e mois.", "Monitoring du rythme fœtal.", "Contrôle de la bonne descente céphalique."),
-            advice = "Profitez de cette libération respiratoire pour faire des siestes réparatrices."
+            week = 36, trimester = 3, title = "Semaine 36", dates = "17 Jun - 23 Jun 2027",
+            fruit = "Fœtus · Prêt pour la naissance", metrics = "47.4 cm · 2.6 kg", heartRate = 132, icon = "🫐",
+            morpho = "Le vernix caseosa s'épaissit. Le bébé prend une position de descente dans le bassin.",
+            inUtero = "Le cœur bat vigoureusement et le bébé s'entraîne à respirer et à téter.",
+            steps = listOf("Visite médicale hebdomadaire de fin de grossesse.", "Contrôle du rythme cardiaque fœtal (monitoring).", "Valise prête à l'entrée."),
+            advice = "Reposez-vous au maximum et conservez vos documents médicaux à portée de main."
         ),
         PregnancyWeek(
-            week = 37, trimester = 3, title = "Semaine 37", dates = "24 Juin - 30 Juin 2027",
-            fruit = "Pastèque Royale", metrics = "48.6 cm · 2.85 kg", heartRate = 130, icon = "🍉",
-            morpho = "Terme précoce atteint ! Tous les organes de votre bébé sont matures et prêts.",
-            inUtero = "Le lanugo disparaît presque totalement de la peau de votre petit garçon.",
-            steps = listOf("Bébé à terme précoce (37 SA).", "Suivi hebdomadaire jusqu'à l'accouchement.", "Derniers conseils de sage-femme."),
-            advice = "Le grand voyage est tout proche : gardez une confiance totale en la force de votre corps."
+            week = 37, trimester = 3, title = "Semaine 37", dates = "24 Jun - 30 Jun 2027",
+            fruit = "Fœtus · Terme précoce (S37)", metrics = "48.6 cm · 2.85 kg", heartRate = 130, icon = "🍉",
+            morpho = "Le bébé est considéré à terme précoce. Tous ses systèmes vitaux sont opérationnels.",
+            inUtero = "Moins de place pour bouger, le bébé se prépare activement à la naissance.",
+            steps = listOf("Monitoring de contrôle de fin de grossesse.", "Vérification des signes de travail.", "Coordonnées de la maternité prêtes."),
+            advice = "Soyez attentive aux moindres signes (contractions régulières, perte des eaux)."
         ),
         PregnancyWeek(
             week = 38, trimester = 3, title = "Semaine 38", dates = "01 Juil - 07 Juil 2027",
-            fruit = "Citrouille Ronde", metrics = "49.8 cm · 3.0 kg", heartRate = 130, icon = "🎃",
-            morpho = "Poigne de main vigoureuse. Les réflexes de succion et de préhension sont parfaits.",
-            inUtero = "Bébé stocke l'énergie finale et prend 25 à 30 grammes par jour.",
-            steps = listOf("Monitoring de routine.", "Reconnaissance des contractions de travail régulières.", "Vérification poche des eaux."),
-            advice = "Un bain tiède détend les muscles si vous ressentez de fausses contractions d'entraînement."
+            fruit = "Fœtus · Descente utérine active", metrics = "49.8 cm · 3.0 kg", heartRate = 130, icon = "🎃",
+            morpho = "Le col commence à s'assouplir et à se modifier sous l'action des hormones.",
+            inUtero = "Descente de la présentation fœtale dans le bassin maternel.",
+            steps = listOf("Consultation obstétricale hebdomadaire.", "Examen du col utérin.", "Vérification du bien-être fœtal."),
+            advice = "Marchez un peu chaque jour si vous vous en sentez capable pour faciliter l'engagement."
         ),
         PregnancyWeek(
             week = 39, trimester = 3, title = "Semaine 39", dates = "08 Juil - 14 Juil 2027",
-            fruit = "Grande Pastèque", metrics = "50.7 cm · 3.2 kg", heartRate = 128, icon = "🍉",
-            morpho = "Maturité physiologique totale. Les ongles dépassent légèrement le bout des doigts.",
-            inUtero = "Le col utérin commence à s'effacer doucement sous la pression du bébé.",
-            steps = listOf("Contrôle du bien-être fœtal.", "Surveillance de la maturation du col.", "Derniers moments d'attente à deux."),
-            advice = "Restez attentive si les contractions deviennent rythmées toutes les 5 minutes pendant une heure."
+            fruit = "Fœtus · Terme accompli", metrics = "50.7 cm · 3.2 kg", heartRate = 128, icon = "🍉",
+            morpho = "Terme accompli. Le duvet protecteur (lanugo) a presque entièrement disparu.",
+            inUtero = "Le bébé est prêt à faire sa grande entrée dans le monde extérieur.",
+            steps = listOf("Dernières vérifications obstétricales.", "Disponibilité de l'équipe médicale de RMA of New York.", "Sérénité absolue."),
+            advice = "Respirez profondément, visualisez la rencontre magique avec votre petit garçon."
         ),
         PregnancyWeek(
             week = 40, trimester = 3, title = "Semaine 40", dates = "15 Juil - 22 Juil 2027",
-            fruit = "Pastèque Sucre", metrics = "51.5 cm · 3.4 kg", heartRate = 128, icon = "🍉",
-            morpho = "LE TERME CLINIQUE EST ATTEINT (22 Juillet 2027) ! Bébé est prêt à naître.",
-            inUtero = "Aboutissement magnifique de votre parcours de grossesse.",
-            steps = listOf("Jour de la Date Prévisionnelle d'Accouchement (DPA).", "Accueil magique de votre petit garçon !", "Célébration d'un immense amour maternel."),
-            advice = "Félicitations ! Bienvenue à votre précieux petit prince garçon, symbole de triomphe et de vie !"
+            fruit = "Bébé à terme · Naissance", metrics = "51.5 cm · 3.4 kg", heartRate = 128, icon = "🍉",
+            morpho = "Terme officiel de la DPA (22/07/2027). Bébé est pleinement développé et magnifique.",
+            inUtero = "Le grand moment est arrivé pour serrer votre petit garçon dans vos bras.",
+            steps = listOf("Arrivée à la maternité pour le grand jour !", "Accueil du nouveau-né.", "Bonheur éternel de la famille."),
+            advice = "Bienvenue dans cette magnifique aventure de parentalité ! Tout notre amour vous accompagne."
         )
     )
 }

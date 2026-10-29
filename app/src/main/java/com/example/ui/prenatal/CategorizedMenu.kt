@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 
 enum class MainCategory(
     val titleFr: String,
@@ -49,7 +51,7 @@ enum class MainCategory(
         count = 4
     ),
     MEMORIES(
-        titleFr = "Mémoires & Projet",
+        titleFr = "Mémoire",
         titleEn = "Memories & Prep",
         subtitleFr = "Échographies, Projet & Carnet",
         subtitleEn = "Scans, Birth Plan & Journal",
@@ -168,11 +170,8 @@ fun CategorizedMenu(
                 val isCatActive = activeCategory == cat
                 Surface(
                     onClick = {
-                        // Switch to first item of this category if not currently in it
-                        if (!isCatActive) {
-                            val firstSection = PrenatalSection.values().first { it.category == cat }
-                            onSelectSection(firstSection)
-                        }
+                        val firstSection = PrenatalSection.values().first { it.category == cat }
+                        onSelectSection(firstSection)
                     },
                     shape = RoundedCornerShape(12.dp),
                     color = if (isCatActive) Color(0xFF92400E) else Color(0xFFFAF4E8),
@@ -308,7 +307,8 @@ fun StickyBottomTabBar(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(16.dp)
+            .zIndex(9999f)
+            .shadow(24.dp)
             .testTag("sticky_bottom_tab_bar"),
         color = Color(0xFFFAF4E8).copy(alpha = 0.95f),
         border = BorderStroke(1.dp, Color(0xFFBFA278).copy(alpha = 0.6f))
@@ -358,4 +358,266 @@ fun StickyBottomTabBar(
         }
     }
 }
+
+@Composable
+fun CleanMobileNavMenu(
+    isOpen: Boolean,
+    onDismiss: () -> Unit,
+    selectedSection: PrenatalSection,
+    onSelectSection: (PrenatalSection) -> Unit,
+    isFrench: Boolean
+) {
+    if (isOpen) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(99999f)
+                .background(Color.Black.copy(alpha = 0.6f))
+                .clickable { onDismiss() }
+        ) {
+            androidx.compose.animation.AnimatedVisibility(
+                visible = isOpen,
+                enter = androidx.compose.animation.slideInVertically(initialOffsetY = { it }) + androidx.compose.animation.fadeIn(),
+                exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { it }) + androidx.compose.animation.fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 600.dp)
+                        .clickable(enabled = false) {},
+                    color = Color(0xFFFAF4E8),
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                    border = BorderStroke(1.dp, Color(0xFFBFA278)),
+                    shadowElevation = 16.dp
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = null,
+                                    tint = Color(0xFF92400E),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Text(
+                                    text = if (isFrench) "Menu de Navigation" else "Navigation Menu",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF2E1905)
+                                )
+                            }
+                            IconButton(
+                                onClick = onDismiss,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .testTag("close_nav_drawer_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = if (isFrench) "Fermer le menu" else "Close menu",
+                                    tint = Color(0xFF78350F)
+                                )
+                            }
+                        }
+
+                        Divider(color = Color(0xFFBFA278).copy(alpha = 0.4f))
+
+                        MainCategory.values().forEach { cat ->
+                            val isCatActive = selectedSection.category == cat
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        if (isCatActive) Color(0xFF92400E).copy(alpha = 0.08f) else Color.Transparent,
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = cat.icon,
+                                        contentDescription = null,
+                                        tint = Color(0xFF92400E),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = if (isFrench) cat.titleFr else cat.titleEn,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF92400E)
+                                    )
+                                }
+
+                                PrenatalSection.values()
+                                    .filter { it.category == cat }
+                                    .forEach { section ->
+                                        val isSelected = selectedSection == section
+                                        Surface(
+                                            onClick = {
+                                                onSelectSection(section)
+                                                onDismiss()
+                                            },
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = if (isSelected) Color(0xFF92400E) else Color(0xFFFAF4E8),
+                                            border = BorderStroke(1.dp, if (isSelected) Color(0xFF92400E) else Color(0xFFBFA278).copy(alpha = 0.5f)),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .heightIn(min = 48.dp)
+                                                .testTag("nav_item_${section.name.lowercase()}")
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = section.icon,
+                                                    contentDescription = null,
+                                                    tint = if (isSelected) Color.White else Color(0xFF92400E),
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                                Text(
+                                                    text = if (isFrench) section.titleFr else section.titleEn,
+                                                    fontSize = 12.sp,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                    color = if (isSelected) Color.White else Color(0xFF2E1905)
+                                                )
+                                            }
+                                        }
+                                    }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TopQuickAccessBar(
+    selectedSection: PrenatalSection,
+    onSelectSection: (PrenatalSection) -> Unit,
+    isFrench: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("top_quick_access_bar"),
+        color = Color(0xFFFAF4E8),
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, Color(0xFFBFA278))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (isFrench) "🚀 Accès Rapide aux Pages & Rubriques" else "🚀 Quick Access to Pages & Sections",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF92400E)
+                )
+                Text(
+                    text = if (isFrench) "Touchez pour ouvrir" else "Tap to open",
+                    fontSize = 10.sp,
+                    color = Color(0xFF78350F)
+                )
+            }
+
+            // Chunk sections into rows of 3 so everything fits on screen without horizontal scrolling
+            val rows = PrenatalSection.values().toList().chunked(3)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                rows.forEach { rowSections ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        rowSections.forEach { section ->
+                            val isSelected = selectedSection == section
+                            val categoryColor = when (section.category) {
+                                MainCategory.GUIDE -> Color(0xFF92400E)
+                                MainCategory.CLINICAL -> Color(0xFF15803D)
+                                MainCategory.MEMORIES -> Color(0xFFB91C1C)
+                            }
+
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (isSelected) categoryColor else categoryColor.copy(alpha = 0.12f),
+                                border = BorderStroke(1.dp, categoryColor.copy(alpha = 0.5f)),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .heightIn(min = 36.dp)
+                                    .clickable { onSelectSection(section) }
+                                    .testTag("top_chip_${section.name.lowercase()}")
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 4.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = section.icon,
+                                        contentDescription = null,
+                                        tint = if (isSelected) Color.White else categoryColor,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    Text(
+                                        text = if (isFrench) section.titleFr else section.titleEn,
+                                        fontSize = 10.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color.White else Color(0xFF2E1905),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                        repeat(3 - rowSections.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 
