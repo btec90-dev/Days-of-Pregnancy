@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,6 +42,17 @@ import com.example.ui.components.AudioHelper
 import com.example.ui.components.FatouLogo
 import com.example.ui.components.PregnancyCountdownCard
 import com.example.ui.components.UltrasoundView
+import com.example.ui.prenatal.BirthPlanBuilder
+import com.example.ui.prenatal.CategorizedMenu
+import com.example.ui.prenatal.IvfMedicationTracker
+import com.example.ui.prenatal.JournalPromptChips
+import com.example.ui.prenatal.KickCounterSection
+import com.example.ui.prenatal.MaternalWeightTracker
+import com.example.ui.prenatal.PregnancyGlossarySection
+import com.example.ui.prenatal.PrenatalGuideTab
+import com.example.ui.prenatal.PrenatalSection
+import com.example.ui.prenatal.UltrasoundVaultSection
+import com.example.ui.prenatal.StickyBottomTabBar
 import com.example.viewmodel.PregnancyViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -65,16 +77,22 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
         PregnancyRepository.weeks.firstOrNull { it.week == selectedWeekNumber } ?: PregnancyRepository.weeks[11]
     }
 
+    var isFrench by remember { mutableStateOf(true) }
     var is3dMode by remember { mutableStateOf(true) }
     var isDopplerPlaying by remember { mutableStateOf(false) }
     var isSpeaking by remember { mutableStateOf(false) }
-    var activeTab by remember { mutableStateOf(0) } // 0: FET, 1: Chronologie, 2: Check-lists, 3: Journal
+    var currentSection by remember { mutableStateOf(PrenatalSection.GUIDE_PRENATAL) }
     var journalText by remember { mutableStateOf("") }
     var autoPlayAudio by remember { mutableStateOf(false) }
 
-    val dateFormatter = remember { SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH) }
-    val fetDateFormatted = dateFormatter.format(Date(uiState.fetDateMillis))
-    val lmpDateFormatted = dateFormatter.format(Date(uiState.lmpDateMillis))
+    val dateFormatterFr = remember { SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH) }
+    val dateFormatterEn = remember { SimpleDateFormat("MMMM dd, yyyy", Locale.ENGLISH) }
+    val fetDateFormatted = remember(uiState.fetDateMillis, isFrench) {
+        if (isFrench) dateFormatterFr.format(Date(uiState.fetDateMillis)) else dateFormatterEn.format(Date(uiState.fetDateMillis))
+    }
+    val lmpDateFormatted = remember(uiState.lmpDateMillis, isFrench) {
+        if (isFrench) dateFormatterFr.format(Date(uiState.lmpDateMillis)) else dateFormatterEn.format(Date(uiState.lmpDateMillis))
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -112,7 +130,7 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
 
     val scrollState = rememberScrollState()
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(
@@ -123,7 +141,9 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
             )
             .padding(12.dp)
     ) {
-        Column(
+        val isDesktop = maxWidth >= 600.dp
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .shadow(24.dp, RoundedCornerShape(24.dp))
@@ -134,10 +154,15 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                     )
                 )
                 .border(8.dp, Color(0xFF926335), RoundedCornerShape(24.dp))
-                .verticalScroll(scrollState)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(16.dp)
+                    .padding(bottom = if (!isDesktop) 80.dp else 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             // Header
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -145,28 +170,67 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    repeat(2) {
-                        Box(
-                            modifier = Modifier
-                                .size(14.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    Brush.radialGradient(
-                                        listOf(Color(0xFFFFEF99), Color(0xFF9A7B2C))
-                                    )
+                    Box(
+                        modifier = Modifier
+                            .size(14.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.radialGradient(
+                                    listOf(Color(0xFFFFEF99), Color(0xFF9A7B2C))
                                 )
-                                .border(1.dp, Color(0xFF422C0A), CircleShape)
-                        )
+                            )
+                            .border(1.dp, Color(0xFF422C0A), CircleShape)
+                    )
+
+                    // Bilingual Toggle (FR 🇫🇷 / EN 🇬🇧)
+                    Surface(
+                        onClick = { isFrench = !isFrench },
+                        color = Color(0xFFFAF4E8),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, Color(0xFFBFA278)),
+                        modifier = Modifier.testTag("language_toggle_button")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = null,
+                                tint = Color(0xFF92400E),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = if (isFrench) "🇫🇷 Français • Passer en EN" else "🇬🇧 English • Switch to FR",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF78350F)
+                            )
+                        }
                     }
+
+                    Box(
+                        modifier = Modifier
+                            .size(14.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.radialGradient(
+                                    listOf(Color(0xFFFFEF99), Color(0xFF9A7B2C))
+                                )
+                            )
+                            .border(1.dp, Color(0xFF422C0A), CircleShape)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
                 FatouLogo()
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "PROTOCOLE FET · SUIVI OBSTÉTRICAL LOCAL (ROOM)",
+                    text = if (isFrench) "PROTOCOLE FET · SUIVI OBSTÉTRICAL LOCAL (ROOM)" else "FET PROTOCOL · LOCAL OBSTETRIC TRACKING (ROOM)",
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF593210).copy(alpha = 0.8f),
@@ -180,7 +244,7 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                     color = Color(0xFF3A200C)
                 )
                 Text(
-                    text = "Base Room • ${uiState.babyName} • RMA of New York",
+                    text = if (isFrench) "Base Room • ${uiState.babyName} • RMA of New York" else "Room Database • ${uiState.babyName} • RMA of New York",
                     fontSize = 12.sp,
                     fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Medium,
@@ -188,7 +252,8 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+
 
                 // Telemetry Status Badges with Room Calculated Week
                 Row(
@@ -211,7 +276,7 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                                     .size(8.dp)
                                     .background(Color(0xFF16A34A), CircleShape)
                             )
-                            Text("Semaine Room : S${uiState.currentWeek} (${uiState.currentDaysInWeek} jours)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
+                            Text(if (isFrench) "Semaine Room : S${uiState.currentWeek} (${uiState.currentDaysInWeek} jours)" else "Room Gestational Week : W${uiState.currentWeek} (${uiState.currentDaysInWeek} days)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
                         }
                     }
                 }
@@ -227,7 +292,19 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // LEFT / TOP: 40 Doors Grid
+                // Ultrasound / 3D Viewer Component (Video Player)
+                UltrasoundView(
+                    weekData = currentWeek,
+                    is3dMode = is3dMode,
+                    onToggleMode = { is3dMode = it },
+                    isDopplerPlaying = isDopplerPlaying,
+                    onToggleDoppler = {
+                        isDopplerPlaying = !isDopplerPlaying
+                        audioHelper.toggleDoppler(currentWeek.heartRate) { isDopplerPlaying = it }
+                    }
+                )
+
+                // 40 Doors Grid
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -617,18 +694,6 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                         }
                     }
 
-                    // Ultrasound / 3D Viewer Component
-                    UltrasoundView(
-                        weekData = currentWeek,
-                        is3dMode = is3dMode,
-                        onToggleMode = { is3dMode = it },
-                        isDopplerPlaying = isDopplerPlaying,
-                        onToggleDoppler = {
-                            isDopplerPlaying = !isDopplerPlaying
-                            audioHelper.toggleDoppler(currentWeek.heartRate) { isDopplerPlaying = it }
-                        }
-                    )
-
                     // Biometrics Cards
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -837,24 +902,21 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                 )
             }
 
-            // Clinical Folders / Tabs Section
+            // Categorized Menus with Icons
             Column(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    TabButton("Calculateur FET (Room)", activeTab == 0) { activeTab = 0 }
-                    TabButton("Chronologie RMA", activeTab == 1) { activeTab = 1 }
-                    TabButton("Check-lists", activeTab == 2) { activeTab = 2 }
-                    TabButton("Carnet Fatou", activeTab == 3) { activeTab = 3 }
-                }
+                CategorizedMenu(
+                    selectedSection = currentSection,
+                    onSelectSection = { currentSection = it },
+                    isFrench = isFrench
+                )
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = Color(0xFFFAF4E8),
-                    shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp, topEnd = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
                     border = BorderStroke(1.dp, Color(0xFFBFA278))
                 ) {
                     Column(
@@ -863,50 +925,90 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        when (activeTab) {
-                            0 -> {
-                                Text("Calculateur DPA & Suivi FET (Room Database)", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
-                                Text("Données persistées localement via Room (J5 Euploïde Mâle).", fontSize = 11.sp, color = Color(0xFF78350F))
+                        when (currentSection) {
+                            PrenatalSection.GUIDE_PRENATAL -> {
+                                PrenatalGuideTab(
+                                    isFrench = isFrench,
+                                    onOpenGlossary = { currentSection = PrenatalSection.GLOSSARY }
+                                )
+                            }
+                            PrenatalSection.GLOSSARY -> {
+                                PregnancyGlossarySection(isFrench = isFrench)
+                            }
+                            PrenatalSection.TIMELINE -> {
+                                Text(if (isFrench) "Chronologie Obstétrique • RMA of New York" else "Obstetric Timeline • RMA of New York", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
+                                TimelineRow("S1-S3", if (isFrench) "Préparation endomètre & Transfert J5" else "Endometrial prep & Day-5 Transfer", "Validé ✓")
+                                TimelineRow("S6-S8", if (isFrench) "Échographie de viabilité cardiaque (120-160 bpm)" else "Cardiac viability ultrasound (120-160 bpm)", "Validé ✓")
+                                TimelineRow("S12", if (isFrench) "Échographie T1 (Clarté nucale) & DPNI" else "T1 Scan (Nuchal translucency) & NIPT", "En cours ⏳")
+                                TimelineRow("S22", if (isFrench) "Échographie morphologique T2" else "T2 Anatomy detailed ultrasound", "À venir")
+                                TimelineRow("S40", if (isFrench) "Date Prévue d'Accouchement (22/07/2027)" else "Estimated Due Date (July 22, 2027)", "Terme")
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Divider(color = Color(0xFFBFA278).copy(alpha = 0.3f))
+                                Text(if (isFrench) "Engagements Cliniques & Suivi Euploïde" else "Clinical Pledges & Euploid Follow-up", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
+                                ChecklistItem(if (isFrench) "Validation du protocole FET & confirmation garçon euploïde 46,XY." else "FET protocol validation & 46,XY euploid male confirmation.")
+                                ChecklistItem(if (isFrench) "Transfert blastocyste J5 sous contrôle échographique." else "Day-5 blastocyst transfer under ultrasound guidance.")
+                                ChecklistItem(if (isFrench) "Bêta-hCG sériés confirmant une cinétique vigoureuse." else "Serial Beta-hCG blood tests confirming doubling kinetics.")
+                                ChecklistItem(if (isFrench) "Échographie du premier trimestre (Clarté nucale à S12)." else "First trimester ultrasound (Nuchal translucency at W12).")
+                            }
+                            PrenatalSection.KICK_COUNTER -> {
+                                KickCounterSection(currentWeek = selectedWeekNumber, isFrench = isFrench)
+                            }
+                            PrenatalSection.PIO_MEDS -> {
+                                IvfMedicationTracker(currentWeek = selectedWeekNumber, isFrench = isFrench)
+                            }
+                            PrenatalSection.WEIGHT_TRACKER -> {
+                                MaternalWeightTracker(currentWeek = selectedWeekNumber, isFrench = isFrench)
+                            }
+                            PrenatalSection.FET_CALCULATOR -> {
+                                Text(if (isFrench) "Calculateur DPA & Suivi FET (Room Database)" else "EDD Calculator & FET Tracking (Room Database)", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
+                                Text(if (isFrench) "Données persistées localement via Room (J5 Euploïde Mâle)." else "Locally persisted data via Room (Day-5 Euploid Male).", fontSize = 11.sp, color = Color(0xFF78350F))
                                 Divider(color = Color(0xFF78350F).copy(alpha = 0.2f))
-                                Text("• Date du Transfert FET (Room) : $fetDateFormatted", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
-                                Text("• DDR Médicale calculée : $lmpDateFormatted", fontSize = 11.sp, color = Color(0xFF3B2814))
-                                Text("• Semaine Actuelle calculée : S${uiState.currentWeek} (${uiState.currentDaysInWeek} jours)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
+                                Text(if (isFrench) "• Date du Transfert FET (Room) : $fetDateFormatted" else "• FET Transfer Date (Room): $fetDateFormatted", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
+                                Text(if (isFrench) "• DDR Médicale calculée : $lmpDateFormatted" else "• Calculated Medical LMP: $lmpDateFormatted", fontSize = 11.sp, color = Color(0xFF3B2814))
+                                Text(if (isFrench) "• Semaine Actuelle calculée : S${uiState.currentWeek} (${uiState.currentDaysInWeek} jours)" else "• Current Gestational Week: W${uiState.currentWeek} (${uiState.currentDaysInWeek} days)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Button(
                                     onClick = {
-                                        // Reset to default Nov 5, 2026
                                         viewModel.updateFetDate(1793836800000L)
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF92400E)),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                                 ) {
-                                    Text("Réinitialiser au 05 Nov 2026", fontSize = 10.sp)
+                                    Text(if (isFrench) "Réinitialiser au 05 Nov 2026" else "Reset to Nov 05, 2026", fontSize = 10.sp)
                                 }
                             }
-                            1 -> {
-                                Text("Chronologie Obstétrique • RMA of New York", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
-                                TimelineRow("S1-S3", "Préparation endomètre & Transfert J5", "Validé ✓")
-                                TimelineRow("S6-S8", "Échographie de viabilité cardiaque (120-160 bpm)", "Validé ✓")
-                                TimelineRow("S12", "Échographie T1 (Clarté nucale) & DPNI", "En cours ⏳")
-                                TimelineRow("S22", "Échographie morphologique T2", "À venir")
-                                TimelineRow("S40", "Date Prévue d'Accouchement (22/07/2027)", "Terme")
+                            PrenatalSection.ULTRASOUND_VAULT -> {
+                                UltrasoundVaultSection(isFrench = isFrench)
                             }
-                            2 -> {
-                                Text("Engagements Cliniques & Suivi Euploïde", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
-                                ChecklistItem("Validation du protocole FET & confirmation garçon euploïde 46,XY.")
-                                ChecklistItem("Transfert blastocyste J5 sous contrôle échographique.")
-                                ChecklistItem("Bêta-hCG sériés confirmant une cinétique vigoureuse.")
-                                ChecklistItem("Échographie du premier trimestre (Clarté nucale à S12).")
+                            PrenatalSection.BIRTH_PLAN -> {
+                                BirthPlanBuilder(isFrench = isFrench)
                             }
-                            3 -> {
-                                Text("Carnet Intime de Fatou", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
+                            PrenatalSection.JOURNAL -> {
+                                Text(if (isFrench) "Carnet Intime de Fatou & Suggestions d'Écriture" else "Fatou's Personal Journal & Prompt Chips", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E1905))
+                                Text(
+                                    text = if (isFrench) "Touchez un thème pour insérer un modèle d'écriture dans votre carnet :" else "Tap a prompt to insert a writing template into your journal:",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF78350F)
+                                )
+                                JournalPromptChips(
+                                    isFrench = isFrench,
+                                    onSelectPrompt = { template ->
+                                        journalText = if (journalText.isBlank()) template else "$journalText\n\n$template"
+                                    }
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
                                 OutlinedTextField(
                                     value = journalText,
                                     onValueChange = { journalText = it },
-                                    placeholder = { Text("Notez ici vos sensations et pensées pour votre petit garçon...", fontSize = 11.sp) },
+                                    placeholder = {
+                                        Text(
+                                            if (isFrench) "Notez ici vos sensations, questions pour le médecin et pensées pour votre petit garçon..." else "Write here your feelings, doctor questions, and letters to your baby boy...",
+                                            fontSize = 11.sp
+                                        )
+                                    },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(100.dp),
+                                        .height(130.dp),
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = Color(0xFF92400E),
                                         unfocusedBorderColor = Color(0xFFBFA278),
@@ -914,6 +1016,16 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
                                         unfocusedContainerColor = Color.White
                                     )
                                 )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    TextButton(
+                                        onClick = { journalText = "" }
+                                    ) {
+                                        Text(if (isFrench) "Effacer" else "Clear", fontSize = 11.sp, color = Color(0xFF78350F))
+                                    }
+                                }
                             }
                         }
                     }
@@ -927,6 +1039,21 @@ fun FatouCalendarScreen(viewModel: PregnancyViewModel = viewModel()) {
             ) {
                 Text("Stockage local Room actif", fontSize = 10.sp, color = Color(0xFF4A2C10))
                 Text("RMA of New York • DPA 22/07/2027", fontSize = 10.sp, color = Color(0xFF4A2C10))
+            }
+            }
+
+            if (!isDesktop) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                ) {
+                    StickyBottomTabBar(
+                        selectedSection = currentSection,
+                        onSelectSection = { currentSection = it },
+                        isFrench = isFrench
+                    )
+                }
             }
         }
     }
